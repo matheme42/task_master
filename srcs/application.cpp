@@ -1,5 +1,6 @@
 #include "application.hpp"
 
+
 void Application::start() {
     std::ofstream outfile;
 
@@ -10,7 +11,9 @@ void Application::start() {
         if (outfile.is_open()) outfile << message << std::endl; 
     });
     preference.port ? prompt.start(preference.port) : prompt.start();
-    outfile.close();
+    if (preference.log_path.size()) {
+        outfile.close();
+    }
 }
 
 void Application::stop() {

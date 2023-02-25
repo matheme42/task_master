@@ -4,6 +4,7 @@
 
 void Prompt::stop() {
     running = false;
+    fclose(stdin);
 }
 
 Prompt::Prompt() {
