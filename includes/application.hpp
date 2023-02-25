@@ -17,7 +17,7 @@ class Application {
     public:
         void initWithArg(int ac, char **av);
         void start();
+        void stop();
 };
-
 
 #endif

@@ -13,6 +13,10 @@ void Application::start() {
     outfile.close();
 }
 
+void Application::stop() {
+    prompt.stop();
+}
+
 void Application::initWithArg(int ac, char **av) {
     preference.configure(ac, av);
 }

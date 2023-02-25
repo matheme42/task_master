@@ -4,17 +4,6 @@
 
 void Prompt::stop() {
     running = false;
-
-    while (client_socket.size()) {
-        int socket = client_socket.at(0);
-        client_socket.erase(client_socket.begin());
-        close(socket);
-    }
-    // closing the listening socket
-    if (server_fd > 0) {
-        shutdown(server_fd, SHUT_RDWR);
-        close(server_fd);
-    }
 }
 
 Prompt::Prompt() {
@@ -23,14 +12,14 @@ Prompt::Prompt() {
 }
 
 Prompt::~Prompt() {
-    stop();
+
 }
 
 void Prompt::start() {
     std::string line;
 
     running = true;
-    while (running) {
+    while (running && !std::cin.eof()) {
         std::cout << DEFAULT_PROMPT;
         std::getline(std::cin, line);
         if (onMessageReceive) onMessageReceive(line.c_str());
@@ -94,6 +83,17 @@ void Prompt::start(int port) {
         }
         }
         usleep(1000);
+    }
+
+    while (client_socket.size()) {
+        int socket = client_socket.at(0);
+        client_socket.erase(client_socket.begin());
+        close(socket);
+    }
+    // closing the listening socket
+    if (server_fd > 0) {
+        shutdown(server_fd, SHUT_RDWR);
+        close(server_fd);
     }
 }
 
