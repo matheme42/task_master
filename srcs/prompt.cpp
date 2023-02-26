@@ -88,7 +88,7 @@ void Prompt::start(int port) {
                     send(new_socket, command_ret.c_str(), command_ret.size(), 0);
                     send(new_socket, "\n", strlen("\n"), 0);
                 }
-                send(new_socket, DEFAULT_PROMPT, strlen(DEFAULT_PROMPT), 0);
+                if (running) send(new_socket, DEFAULT_PROMPT, strlen(DEFAULT_PROMPT), 0);
                 bzero(buffer, ret);
         }
         }
