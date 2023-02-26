@@ -35,7 +35,7 @@ int Option::checkWorkingArg(char *s) {
         if (FILE *file = fopen(s, "r+")) {
             fclose(file);
             std::string line;
-            std::cout << "option -" << working_option << ": a file already exist override / append / cancel ? (Y / A / C)" << std::endl;
+            std::cout << "option -" << working_option << ": a file already exist override / append / cancel ? (Y / A / C): ";
             std::getline(std::cin, line);
             if (line[0] == 'C' || line[0] == 'c') exit(0);
             else if (line[0] == 'Y' || line[0] == 'y') remove(s);
