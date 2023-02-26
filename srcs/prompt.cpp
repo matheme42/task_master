@@ -18,12 +18,16 @@ Prompt::~Prompt() {
 
 void Prompt::start() {
     std::string line;
+    std::string command_ret;
 
     running = true;
     while (running && !std::cin.eof()) {
         std::cout << DEFAULT_PROMPT;
         std::getline(std::cin, line);
-        if (onMessageReceive) onMessageReceive(line.c_str());
+        if (onMessageReceive) command_ret = onMessageReceive(line.c_str());
+        if (command_ret[0] != '\0') {
+            std::cout << command_ret << std::endl;
+        }
         line.clear();
     }
 }
@@ -60,7 +64,8 @@ void Prompt::start(int port) {
         exit(EXIT_FAILURE);
     }
 
-    int ret;
+    int     ret;
+    std::string command_ret;
     while (running) {
         int localNewSocket = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
         if (localNewSocket > 0) {
@@ -78,7 +83,11 @@ void Prompt::start(int port) {
                     continue;
                 }
                 buffer[ret - 1] = '\0';
-                if (onMessageReceive) onMessageReceive(buffer);
+                if (onMessageReceive) command_ret = onMessageReceive(buffer);
+                if (command_ret[0] != '\0') {
+                    send(new_socket, command_ret.c_str(), command_ret.size(), 0);
+                    send(new_socket, "\n", strlen("\n"), 0);
+                }
                 send(new_socket, DEFAULT_PROMPT, strlen(DEFAULT_PROMPT), 0);
                 bzero(buffer, ret);
         }
@@ -89,6 +98,7 @@ void Prompt::start(int port) {
     while (client_socket.size()) {
         int socket = client_socket.at(0);
         client_socket.erase(client_socket.begin());
+        shutdown(socket, SHUT_RDWR);
         close(socket);
     }
     // closing the listening socket

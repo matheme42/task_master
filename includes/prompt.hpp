@@ -10,7 +10,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <vector>
-#include "functional"
+#include <functional>
+#include <string>
 
 class Prompt {
     #define DEFAULT_PROMPT "---(Taskmaster)-----------------\n"
@@ -24,7 +25,7 @@ class Prompt {
         socklen_t           addrlen;
 
     public:
-        std::function<void(const char *)> onMessageReceive;
+        std::function<std::string(const char *)> onMessageReceive;
 
         Prompt();
         void start(int port);

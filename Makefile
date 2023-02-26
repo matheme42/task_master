@@ -20,7 +20,7 @@ INC_PATH= includes
 
 INC= $(INC_PATH)/*
 
-NAME_SRC= main.cpp prompt.cpp application.cpp option.cpp
+NAME_SRC= main.cpp prompt.cpp application.cpp option.cpp command.cpp
 
 
 NAME_SRC_LEN	= $(shell echo -n $(NAME_SRC) | wc -w)
