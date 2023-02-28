@@ -22,7 +22,7 @@ int Option::checkWorkingArg(char *s) {
         if (FILE *file = fopen(s, "r")) {
             fclose(file);
         } else {
-            if (s == "\0") {
+            if (!strcmp(s, "\0")) {
                 std::cout << "option -" << working_option << ": a file must be reffered" << std::endl;
             } else {
                 std::cout << "option -" << working_option << ": " << s << " does not exist" << std::endl;
@@ -43,7 +43,7 @@ int Option::checkWorkingArg(char *s) {
             fclose(file);
             remove(s);
         } else {
-            if (s == "\0") {
+            if (!strcmp(s, "\0")) {
                 std::cout << "option -" << working_option << ": a file path must be reffered" << std::endl;
             } else {
                 std::cout << "option -" << working_option << ": " << s << " is not a valid file path" << std::endl;
