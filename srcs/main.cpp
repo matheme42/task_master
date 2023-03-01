@@ -12,7 +12,6 @@ void sig_handler(int signo)
 int main(int ac, char **av) {
     application.initWithArg(ac, av);
 
-
     if (signal(SIGINT, sig_handler) == SIG_ERR)
         printf("\ncan't catch SIGINT\n");
 

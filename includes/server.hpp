@@ -1,5 +1,5 @@
-#ifndef PROMPT_HPP
-#define PROMPT_HPP
+#ifndef SEVER_HPP
+#define SEVER_HPP
 
 #include<signal.h>
 #include <netinet/in.h>
@@ -13,9 +13,7 @@
 #include <functional>
 #include <string>
 
-class Prompt {
-    #define DEFAULT_PROMPT "---(Taskmaster)-----------------\n"
-
+class Server {
     private:
         bool                running;
         int                 server_fd;
@@ -27,11 +25,9 @@ class Prompt {
     public:
         std::function<std::string(const char *)> onMessageReceive;
 
-        Prompt();
+        Server();
         void start(int port);
-        void start();
         void stop();
-        ~Prompt();
 };
 
 

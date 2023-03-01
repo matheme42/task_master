@@ -7,20 +7,26 @@ void Application::start() {
     if (preference.log_path.size()) {
         outfile.open(preference.log_path, std::ios_base::app);
     }
-    prompt.onMessageReceive = ([&] (const char *message) {
+    
+    client.onMessageReceive = ([&] (const char *message) {
+        if (outfile.is_open()) outfile << message << std::endl; 
+        return command.interprete(message);
+    });
+
+    server.onMessageReceive = ([&] (const char *message) {
         if (outfile.is_open()) outfile << message << std::endl; 
         return command.interprete(message);
     });
     setCommandCallback();
 
-    preference.port ? prompt.start(preference.port) : prompt.start();
+    preference.port ? server.start(preference.port) : client.connect();
     if (preference.log_path.size()) {
         outfile.close();
     }
 }
 
 void Application::stop() {
-    prompt.stop();
+    preference.port ? server.stop() : client.disconnect();
     command.interrupt();
 }
 

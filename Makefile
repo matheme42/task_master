@@ -20,8 +20,7 @@ INC_PATH= includes
 
 INC= $(INC_PATH)/*
 
-NAME_SRC= main.cpp prompt.cpp application.cpp option.cpp command.cpp
-
+NAME_SRC= main.cpp server.cpp application.cpp option.cpp command.cpp client.cpp termcaps.cpp
 
 NAME_SRC_LEN	= $(shell echo -n $(NAME_SRC) | wc -w)
 I				= 
@@ -42,7 +41,7 @@ GPP			= g++ -std=c++11 $(OPTIMISATION_FLAG) $(DEBUG_FLAG)
 all: $(NAME)
 
 $(NAME) : $(OBJS)
-	@$(GPP) $^ -o $@
+	@$(GPP) $^ -o $@ -lncurses
 	@echo "	\033[2K\r$(DARK_BLUE)$(NAME):\t\t$(GREEN)loaded\033[0m"
 
 $(OBJ_PATH)/%.o: $(SRC_PATH)/%.cpp $(INC) Makefile

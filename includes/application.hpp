@@ -1,7 +1,8 @@
 #ifndef APPLICATION_HPP
 #define APPLICATION_HPP
 
-#include <prompt.hpp>
+#include <server.hpp>
+#include <client.hpp>
 #include <option.hpp>
 #include <command.hpp>
 
@@ -12,7 +13,8 @@
 class Application {
     private:
         /// modules
-        Prompt prompt;
+        Server server;
+        Client client;
         Option preference;
         Command command;
 

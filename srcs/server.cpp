@@ -1,38 +1,16 @@
-#include "prompt.hpp"
-#include <ostream>
-#include <iostream>
+#include "server.hpp"
 
-void Prompt::stop() {
+void Server::stop() {
     running = false;
     fclose(stdin);
 }
 
-Prompt::Prompt() {
+Server::Server() {
     bzero(buffer, sizeof(buffer));
     server_fd = 0;
 }
 
-Prompt::~Prompt() {
-
-}
-
-void Prompt::start() {
-    std::string line;
-    std::string command_ret;
-
-    running = true;
-    while (running && !std::cin.eof()) {
-        std::cout << DEFAULT_PROMPT;
-        std::getline(std::cin, line);
-        if (onMessageReceive) command_ret = onMessageReceive(line.c_str());
-        if (command_ret[0] != '\0') {
-            std::cout << command_ret << std::endl;
-        }
-        line.clear();
-    }
-}
-
-void Prompt::start(int port) {
+void Server::start(int port) {
     running = true;
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -71,7 +49,6 @@ void Prompt::start(int port) {
         if (localNewSocket > 0) {
             client_socket.push_back(localNewSocket);
             fcntl(localNewSocket, F_SETFL, O_NONBLOCK);
-            send(localNewSocket, DEFAULT_PROMPT, strlen(DEFAULT_PROMPT), 0);
         }
         int socketListLen = client_socket.size();
         for (int i = 0; i < socketListLen; i++) {
@@ -88,7 +65,6 @@ void Prompt::start(int port) {
                     send(new_socket, command_ret.c_str(), command_ret.size(), 0);
                     send(new_socket, "\n", strlen("\n"), 0);
                 }
-                if (running) send(new_socket, DEFAULT_PROMPT, strlen(DEFAULT_PROMPT), 0);
                 bzero(buffer, ret);
         }
         }
