@@ -6,17 +6,21 @@
 #include <iostream>
 #include <fstream>
 
-class Tintin_reporter {
-    enum LEVEL {
-        SYSTEM,
-        PROMPT,
-        COMMAND,
-        SIGNAL,
-        ERROR,
-    };
-    private:
-        std::string outputfile = "/var/log/tintin/taskmaster.log";
+#include <ctime>
+#include <iomanip>
+#include <chrono>
+#include <sstream>
 
+#include <color.hpp>
+
+class Tintin_reporter {
+    #define LOGGING_DEFAULT_PATH "/var/log/tintin/taskmaster.log"
+
+    private:
+        std::string outputfile;
+
+        std::string getTime();
+        void log(std::string message, std::string color, std::string level);
     public:
         void init(std::string outputfile);
         void system(std::string message);

@@ -13,17 +13,6 @@ std::string Server::configure(int port) {
     std::string ret;
     running = false;
 
-
-    if (FILE *file = fopen(LOCKFILE, "r+")) {
-        fclose(file);
-        ret = ret + LIGHT_RED + "an instance of taskmaster is already running";
-        return (ret);
-    }
-
-    std::ofstream outfile (LOCKFILE);
-    outfile.close();
-
-
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         ret = ret + "socket failed";
@@ -99,7 +88,7 @@ void Server::start() {
                 bzero(buffer, ret);
         }
         }
-        usleep(1000);
+        usleep(100000);
     }
 
     while (client_socket.size()) {
@@ -114,7 +103,5 @@ void Server::start() {
         shutdown(server_fd, SHUT_RDWR);
         close(server_fd);
     }
-
-    remove("/var/lock/taskmaster.lock");
 }
 

@@ -7,8 +7,13 @@
 #include <command.hpp>
 #include <logging.hpp>
 
+#include <libgen.h>
+#include <sys/stat.h>
+
+
 class Application {
     enum Mode { SERVER, CLIENT, NONE};
+    #define LOCKFILE "/var/lock/taskmaster.lock"
 
     private:
         /// mode
@@ -26,7 +31,10 @@ class Application {
         /// a flag to tell the application need to restart
         bool restart;
 
+        int  create_directory_recursive(char *dir, mode_t mode);
         void setCommandCallback();
+        void configureLogger();
+        bool CheckForInstance();
     public:
 
         /// initialize

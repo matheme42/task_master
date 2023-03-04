@@ -262,6 +262,7 @@ void Client::start(int port) {
     struct sockaddr_in serv_addr;
     if ((client_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         printf("\n Socket creation error \n");
+        std::cout << LIGHT_RED << "Socket creation error\n" << DEFAULT_COLOR;
         return ;
     }
   
@@ -270,13 +271,13 @@ void Client::start(int port) {
   
     // Convert IPv4 and IPv6 addresses from text to binary
     if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
-        printf("\nInvalid address/ Address not supported \n");
+        std::cout << LIGHT_RED << "Invalid address/ Address not supported\n" << DEFAULT_COLOR;
         return ;
     }
   
     if ((status = connect(client_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)))
         < 0) {
-        printf("Connection Failed \n");
+        std::cout << LIGHT_RED << "Connection Failed\n" << DEFAULT_COLOR;
         return ;
     }
     fcntl(client_fd, F_SETFL, O_NONBLOCK);

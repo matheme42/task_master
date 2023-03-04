@@ -15,7 +15,6 @@
 
 class Server {
     #define MAX_CLIENT 3
-    #define LOCKFILE "/var/lock/taskmaster.lock"
 
     private:
         bool                running;
