@@ -1,18 +1,27 @@
 #include "termcaps.hpp"
 
 Termcaps::Termcaps() {
+
     if (setupterm(NULL, STDOUT_FILENO, NULL)) {
         fprintf(stderr, "unable to start TERMCAPS\n");
         return ;
     }
-    column_count = tigetnum("cols");
-    line_count = tigetnum("lines");
+    getTermSize();
 }
 
 void Termcaps::del() {
     putp(tigetstr((char*)"cub1"));
     std::cout << " ";
     putp(tigetstr((char*)"cub1"));
+}
+
+void Termcaps::getTermSize() {
+    struct winsize ws;
+
+    if (!ioctl(0, TIOCGWINSZ, &ws)) {
+        column_count = ws.ws_col;
+        line_count = ws.ws_row;
+    }
 }
 
 void Termcaps::delUp() {
@@ -37,8 +46,7 @@ void Termcaps::restoreCursorPosition() {
 
 void Termcaps::clear() {
     tputs(tigetstr((char*)"clear"), 1, putchar);
-    column_count = tigetnum("cols");
-    line_count = tigetnum("lines");
+    getTermSize();
 }
 
 void Termcaps::moveRight() {

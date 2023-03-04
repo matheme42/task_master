@@ -52,6 +52,10 @@ void Application::sigint() {
     }
 }
 
+void Application::sigwinch() {
+    client.redraw();
+}
+
 void Application::setCommandCallback() {
     command.onCommandShutdown = ([&](){stop();});
 

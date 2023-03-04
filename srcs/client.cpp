@@ -253,3 +253,12 @@ void Client::start(int port) {
     // closing the connected socket
     close(client_fd);
 }
+
+void Client::redraw() {
+    termcaps.clear();
+    std::cout << DEFAULT_PROMPT << line;
+    if (autocompletionString.size() > 0) {
+        std::cout << autocompletionString;
+    }
+    fflush(stdout);
+}

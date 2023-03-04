@@ -14,19 +14,29 @@ class Application {
     enum Mode { SERVER, CLIENT};
 
     private:
+        /// mode
+        Mode mode;
+
+
         /// modules
         Server server;
         Client client;
         Option preference;
         Command command;
-        Mode mode;
 
         void setCommandCallback();
     public:
+
+        /// initialize
         void initWithArg(int ac, char **av);
-        void sigint();
+
+        /// start/stop
         void start();
         void stop();
+
+        // reagir a signal
+        void sigint();
+        void sigwinch();
 };
 
 #endif

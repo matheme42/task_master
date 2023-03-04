@@ -4,6 +4,7 @@
 #include <iostream>
 #include <term.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
 
 
 class Termcaps
@@ -14,10 +15,11 @@ class Termcaps
 
         Termcaps();
 
+        void getTermSize();
+
         void del();
         void delUp();
         void delLine();
-
         void clear();
 
         void moveLeft();

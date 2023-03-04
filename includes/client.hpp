@@ -54,6 +54,7 @@ class Client
         void start();
         void stop();
         void clear();
+        void redraw();
 };
 
 
