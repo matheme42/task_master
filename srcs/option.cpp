@@ -156,7 +156,7 @@ char	**Option::configure(int ac, char **av)
     }
 	parse(ac - 1, &(av[1]));
 
-    if (config_path.size() == 0) {
+    if (config_path.size() == 0 && port == 0) {
         std::cout << "taskmaster: a config file must be reffered with option: -c" << std::endl;
         exit(0);
     }

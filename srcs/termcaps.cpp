@@ -5,47 +5,45 @@ Termcaps::Termcaps() {
         fprintf(stderr, "unable to start TERMCAPS\n");
         return ;
     }
-
-    /* Terminfo */
-    column_count = tigetnum((char*)"cols");
-    line_count = tigetnum((char*)"lines");
-    cursorPosition = 0;
+    column_count = tigetnum("cols");
+    line_count = tigetnum("lines");
 }
 
 void Termcaps::del() {
-   // if (cursorPosition % column_count == 0)
-    //{
-        // Séquence d'échappement de terminfo pour remonter le curseur d'un cran
-     //   char *up_cursor = tparm(tigetstr((char*)"cuu1"));
-        // Affichage de la séquence d'échappement pour remonter le curseur
-     //   tputs(up_cursor, 1, putchar);
-    //    return ;
-    //}
-    // obtenir les capacités du terminal
-    char *cursor = tigetstr((char*)"cub1");
-
-    // déplacer le curseur d'une position vers la gauche
-    putp(cursor);
+    putp(tigetstr((char*)"cub1"));
     std::cout << " ";
-    putp(cursor);
-    cursorPosition--;
+    putp(tigetstr((char*)"cub1"));
+}
+
+void Termcaps::delUp() {
+    moveUp();
+    moveRight(column_count);
+    std::cout << " ";
 }
 
 void Termcaps::delLine() {
-    char *clear_line = tigetstr((char*)"el1");
-    const char* move_cursor = tigetstr((char*)"cr");
-    
-    tputs(clear_line, 1, putchar); // efface la ligne
-    tputs(move_cursor, 1, putchar); // repositionne le curseur en début de ligne
-    cursorPosition = 0;
+    tputs(tigetstr((char*)"el1"), 1, putchar); // efface la ligne
+    tputs(tigetstr((char*)"el"), 1, putchar); // efface la ligne
+    tputs(tigetstr((char*)"cr"), 1, putchar); // repositionne le curseur en début de ligne
+}
+
+void Termcaps::saveCursorPosition() {
+    tputs(tigetstr((char*)"sc"), 1, putchar);
+}
+
+void Termcaps::restoreCursorPosition() {
+    tputs(tigetstr((char*)"rc"), 1, putchar);
+}
+
+void Termcaps::clear() {
+    tputs(tigetstr((char*)"clear"), 1, putchar);
+    column_count = tigetnum("cols");
+    line_count = tigetnum("lines");
 }
 
 void Termcaps::moveRight() {
-    if (cursorPosition == column_count)
-        return ;
     char *cursor = tigetstr((char*)"cuf1");
     putp(cursor);
-    cursorPosition++;
 }
 
 void Termcaps::moveRight(int n) {
@@ -55,12 +53,8 @@ void Termcaps::moveRight(int n) {
 }
 
 void Termcaps::moveLeft() {
-    if (cursorPosition == 0)
-        return ;
-
     char *cursor = tigetstr((char*)"cub1");
     putp(cursor);
-    cursorPosition--;
 }
 
 
@@ -68,4 +62,14 @@ void Termcaps::moveLeft(int n) {
     if (n >= 0)
         moveLeft(n - 1);
     moveLeft();
+}
+
+void Termcaps::moveUp() {
+    char *cursor = tigetstr((char*)"cuu1");
+    putp(cursor);
+}
+
+void Termcaps::moveDown() {
+    char *cursor = tigetstr((char*)"cud1");
+    putp(cursor);
 }

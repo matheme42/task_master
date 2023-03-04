@@ -16,25 +16,44 @@
 #include <iostream>
 #include <termios.h>
 #include <termcaps.hpp>
+#include <color.hpp>
+#include <algorithm>
 
 class Client
 {
-    #define DEFAULT_PROMPT "---(Taskmaster)-----------------\n"
+    #define DEFAULT_PROMPT BLUE << "taskmaster " << DARK_BLUE << "✗ " << DEFAULT_COLOR
+    #define DEFAULT_PROMPT_SIZE 12
+
+    std::vector <std::string> commandList = {
+    "start", "stop", "restart", "status", "reload",
+    "shutdown", "help", "exit", "quit"};
+
     private:
         Termcaps termcaps;
         std::string line;
+        int cursor_position;
+        int autocompletionStringIdx;
+        std::string autocompletionString;
+
 
         std::vector <std::string> history;
         int history_index;
 
-        int checkArrowPress(int input);
+        int client_fd = 0;
+        char buffer[2048] = { 0 };
+
+
+        int manageControlKey(int input);
+        int managekey(int input);
+        void autocompletion();
         bool listen;
     public:
         std::function<std::string(const char *)> onMessageReceive;
 
-        void connect(int port);
-        void connect();
-        void disconnect();
+        void start(int port);
+        void start();
+        void stop();
+        void clear();
 };
 
 

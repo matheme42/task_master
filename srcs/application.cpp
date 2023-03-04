@@ -19,19 +19,37 @@ void Application::start() {
     });
     setCommandCallback();
 
-    preference.port ? server.start(preference.port) : client.connect();
+    if (preference.port) {
+        if (preference.config_path.size() != 0) {
+            server.start(preference.port);
+        } else {
+            client.start(preference.port);
+        }
+    } else {
+        client.start();
+    }
+
     if (preference.log_path.size()) {
         outfile.close();
     }
 }
 
 void Application::stop() {
-    preference.port ? server.stop() : client.disconnect();
+    preference.port && preference.config_path.size() ? server.stop() : client.stop();
     command.interrupt();
 }
 
 void Application::initWithArg(int ac, char **av) {
     preference.configure(ac, av);
+    mode = preference.port && preference.config_path.size() != 0 ? SERVER : CLIENT;
+}
+
+void Application::sigint() {
+    if (mode == SERVER) {
+        server.stop();
+    } else {
+        client.clear();
+    }
 }
 
 void Application::setCommandCallback() {
@@ -49,7 +67,7 @@ void Application::setCommandCallback() {
 
     command.onCommandStop = ([&](std::string process){
         std::string ret;
-        return ret;
+        return "shutdown";
     });
 
     command.onCommandRestart = ([&](std::string process){

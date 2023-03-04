@@ -6,9 +6,16 @@
 #include <vector>
 #include <algorithm>
 #include <functional>
+#include <color.hpp>
 
 class Command {
     #define WHITESPACE " \n\r\t\f\v"
+    /// \r --> retour en debut de ligne
+    /// \t --> tabulation
+    /// \n --> retour ligne
+    /// \f --> retour ligne
+    /// \v --> retour ligne
+
 
     private:
         std::vector<std::string>    commandList;

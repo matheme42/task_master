@@ -63,7 +63,8 @@ void Server::start(int port) {
                 if (onMessageReceive) command_ret = onMessageReceive(buffer);
                 if (command_ret[0] != '\0') {
                     send(new_socket, command_ret.c_str(), command_ret.size(), 0);
-                    send(new_socket, "\n", strlen("\n"), 0);
+                } else {
+                    send(new_socket, "", 1, 0);
                 }
                 bzero(buffer, ret);
         }

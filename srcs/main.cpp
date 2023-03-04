@@ -6,7 +6,7 @@ Application application;
 void sig_handler(int signo)
 {
   if (signo == SIGINT)
-    application.stop();
+    application.sigint();
 }
 
 int main(int ac, char **av) {

@@ -40,7 +40,7 @@ std::string Command::buildHelpString() {
     help = help + "  start    [process name] [etc...] : start the given process\n";
     help = help + "  restart  [process name] [etc...] : start the given process\n";
     help = help + "  stop     [process name] [etc...] : stop the given process\n";
-    help = help + "  shutdown                         : shutdown taskmaster";
+    help = help + "  shutdown / exit / quit           : quit taskmaster";
     return help;
 }
 
@@ -51,9 +51,9 @@ std::string Command::interpreteCommand(std::string s) {
     std::vector<std::string> v = split(s, " ");
     std::transform(v[0].begin(), v[0].end(), v[0].begin(), [](unsigned char c){ return std::tolower(c); });
 
-    if (v[0] == "shutdown") {
+    if (v[0] == "shutdown" || v[0] == "exit" || v[0] == "quit") {
         if (onCommandShutdown) onCommandShutdown();
-        return ret;
+        return "shutdown";
     }
     if (v[0] == "help") {
         return buildHelpString();
@@ -73,7 +73,8 @@ std::string Command::interpreteCommand(std::string s) {
         }
     } else if (v[0] == "start" || v[0] == "restart" || v[0] == "stop") {
         if (v.size() == 1) {
-            return "command error >> " + v[0] + " must be follow by at least one process name";
+            ret = ret + DARK_BLUE + "taskmaster: " + LIGHT_RED + "command error: " + WHITE_BOLD + v[0] + DEFAULT_COLOR + ": must be follow by at least one process name";
+            return ret;
         } else {
             for (auto it = begin(v) + 1; it != end(v); it++) {
                if (ret.size() != 0) ret = ret + "\n";
@@ -108,7 +109,7 @@ std::string Command::interprete(const char *s) {
             commandsReturn = commandsReturn + "\n";
         }
         if (ret[0] == '\n') {
-            commandsReturn = commandsReturn + "command not found >> " + k + " (try command: help)";
+            commandsReturn = commandsReturn + DARK_BLUE + "taskmaster: " + LIGHT_RED + "command not found: " + WHITE_BOLD + k + DEFAULT_COLOR;
         } else {
             commandsReturn = commandsReturn + ret;
         }

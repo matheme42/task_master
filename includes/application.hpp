@@ -11,16 +11,20 @@
 #include <iostream>
 
 class Application {
+    enum Mode { SERVER, CLIENT};
+
     private:
         /// modules
         Server server;
         Client client;
         Option preference;
         Command command;
+        Mode mode;
 
         void setCommandCallback();
     public:
         void initWithArg(int ac, char **av);
+        void sigint();
         void start();
         void stop();
 };
