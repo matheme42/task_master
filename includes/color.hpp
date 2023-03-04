@@ -12,5 +12,6 @@
 #define FLASH_GREEN   "\033[33;32m"
 #define WHITE_BOLD   "\033[37m"
 #define DEFAULT_COLOR "\033[0m"
+#define BROWN   "\033[0;38;5;130m"
 
 #endif

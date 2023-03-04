@@ -34,6 +34,7 @@ class Command {
         /// les callbacks
         std::function<void()>        onCommandShutdown;
         std::function<void()>        onCommandExit;
+        std::function<void()>        onCommandHelp;
         std::function<std::string()> onCommandReload;
         std::function<std::string(int port)> onCommandBackground;
 

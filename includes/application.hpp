@@ -19,9 +19,6 @@ class Application {
         /// mode
         Mode mode;
 
-        /// logging
-        Tintin_reporter reporter;
-
         /// modules
         Server server;
         Client client;

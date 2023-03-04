@@ -23,11 +23,14 @@ class Tintin_reporter {
         void log(std::string message, std::string color, std::string level);
     public:
         void init(std::string outputfile);
+
         void system(std::string message);
         void prompt(std::string message);
         void command(std::string message);
         void signal(std::string message);
         void error(std::string message);
 };
+
+extern Tintin_reporter reporter;
 
 #endif

@@ -236,6 +236,7 @@ void Client::start() {
 
     if (client_fd == 0) {
         commandList.push_back("background");
+        reporter.system("start listening in local");
     }
 
     std::cout << DEFAULT_PROMPT;
@@ -252,6 +253,9 @@ void Client::start() {
         }
         client_fd ? sendCommandLineInRemote() : sendCommandLineInLocal();
     }
+
+    if (client_fd == 0) reporter.system("stop listening in local");
+
     restoreKeyboard();
 }
 

@@ -42,10 +42,18 @@ void Application::start() {
     if (mode == NONE) {
         reporter.system("system start (local)");
         command.enableBackgroundCommand = true;
-        if (CheckForInstance()) return ;
+        if (CheckForInstance()) {
+            reporter.system("system stop (local)");
+            return ;
+        }
         client.start();
-        if (restart) start();
+        if (restart) {
+            reporter.system("system stop (local)");
+            start();
+            return ;
+        } 
         remove(LOCKFILE);
+        reporter.system("system stop (local)");
         return ;
     }
 
@@ -53,15 +61,21 @@ void Application::start() {
         reporter.system("system start (server)");
         command.enableBackgroundCommand = false;
         if (!restart) {
-            if (CheckForInstance()) return ;
+            if (CheckForInstance()) {
+                reporter.system("system stop (server)");
+                return ;
+            }
             std::string ret = server.configure(preference.port);
             if (ret.size()) {
-                std::cout << ret << std::endl;
+                std::cout << LIGHT_RED << ret << std::endl;
+                remove(LOCKFILE);
+                reporter.system("system stop (server)");
                 return ;
             }
         }
         server.start();
         remove(LOCKFILE);
+        reporter.system("system stop (server)");
         return ;
     }
     client.start(preference.port);
@@ -83,7 +97,6 @@ void Application::configureLogger() {
         std::string directory = path.substr(0, path.find_last_of('/'));
         if (create_directory_recursive((char*)directory.c_str(), S_IRWXU))
             std::cout << "can't log to file:" << path;
-
         reporter.init(preference.log_path);
     }
 }
@@ -107,14 +120,17 @@ void Application::initWithArg(int ac, char **av) {
     configureLogger();
     setCommandCallback();
     client.onMessageReceive = ([&] (const char *message) {
+        reporter.prompt(message);
         return command.interprete(message);
     });
     server.onMessageReceive = ([&] (const char *message) {
+        reporter.prompt(message);
         return command.interprete(message);
     });
 }
 
 void Application::sigint() {
+    reporter.signal("sigint");
     if (mode == SERVER) server.stop();
     else client.clear();
 }
@@ -124,16 +140,24 @@ void Application::sigwinch() {
 }
 
 void Application::setCommandCallback() {
-    command.onCommandShutdown = ([&](){stop();});
+    command.onCommandShutdown = ([&](){
+        reporter.command("shutdown");
+        stop();
+        });
 
     command.onCommandReload = ([&](){
+        reporter.command("reload");
         std::string ret;
         return ret;
     });
 
     command.onCommandBackground = ([&](int port){
+        reporter.command("background port: " + std::to_string(port));
         std::string ret = server.configure(port);
-        if (ret.size()) return ret;
+        if (ret.size()) {
+            ret = LIGHT_RED + ret + DEFAULT_COLOR;
+            return ret;
+        } 
         client.stop();
         mode = SERVER;
         preference.port = port;
@@ -142,27 +166,36 @@ void Application::setCommandCallback() {
     });
 
     command.onCommandStart = ([&](std::string process){
+        reporter.command("start process: " + process);
         std::string ret;
         return ret;
     });
 
     command.onCommandStop = ([&](std::string process){
+        reporter.command("stop process: " + process);
         std::string ret;
         return ret;
     });
 
     command.onCommandRestart = ([&](std::string process){
+        reporter.command("restart process: " + process);
         std::string ret;
         return ret;
     });
 
     command.onCommandStatus = ([&](std::string process){
+        reporter.command("status process: " + process);
         std::string ret;
         return ret;
     });
 
     command.onCommandStatusAll = ([&](){
+        reporter.command("status all");
         std::string ret;
         return ret;
+    });
+
+    command.onCommandHelp = ([&](){
+        reporter.command("help");
     });
 }

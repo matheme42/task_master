@@ -18,6 +18,7 @@
 #include <termcaps.hpp>
 #include <color.hpp>
 
+#include <logging.hpp>
 
 class Client
 {

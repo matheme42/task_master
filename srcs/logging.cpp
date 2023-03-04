@@ -36,21 +36,26 @@ void Tintin_reporter::log(std::string message, std::string color, std::string le
 }
 
 void Tintin_reporter::system(std::string message) {
+    if (outputfile.size() == 0) return ;
     log(message, DARK_BLUE, "[system] ");
 }
 
 void Tintin_reporter::prompt(std::string message) {
-    log(message, DEFAULT_COLOR, "[prompt] ");
+    if (outputfile.size() == 0) return ;
+    log(message, BROWN, "[prompt] ");
 }
 
 void Tintin_reporter::command(std::string message) {
+    if (outputfile.size() == 0) return ;
     log(message, GREEN, "[command]");
 }
 
 void Tintin_reporter::signal(std::string message) {
+    if (outputfile.size() == 0) return ;
     log(message, PINK, "[signal] ");
 }
 
 void Tintin_reporter::error(std::string message) {
+    if (outputfile.size() == 0) return ;
     log(message, DARK_RED, "[error]  ");
 }

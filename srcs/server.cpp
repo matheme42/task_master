@@ -1,4 +1,5 @@
 #include "server.hpp"
+#include "logging.hpp"
 
 void Server::stop() {
     running = false;
@@ -17,6 +18,7 @@ std::string Server::configure(int port) {
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         ret = ret + "socket failed";
         ret = ret + strerror(errno);
+        reporter.error(ret);
         return (ret);
     }
 
@@ -25,8 +27,10 @@ std::string Server::configure(int port) {
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
         ret = ret + "setsockopt";
         ret = ret + strerror(errno);
+        reporter.error(ret);
         return (ret);
     }
+    reporter.system("socket created");
 
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
@@ -34,18 +38,16 @@ std::string Server::configure(int port) {
 
    // Forcefully attaching socket to the port 8080
     if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
-        ret = ret + LIGHT_RED;
-        ret = ret + "the port: ";
-        ret = ret + std::to_string(port);
-        ret = ret + " is already use";
+        ret = "the port: " + std::to_string(port) + " is already use";
+        reporter.error(ret);
         return (ret);
-    } else if (listen(server_fd, 3) < 0) {
+    }
+    reporter.system("socket binded on port " + std::to_string(port));
+ 
+    if (listen(server_fd, 3) < 0) {
         ret = ret + "listen";
         ret = ret + strerror(errno);
-        return (ret);
-    } else if(daemon(0, 0)) {
-        ret = ret + "daemon";
-        ret = ret + strerror(errno);
+        reporter.error(ret);
         return (ret);
     }
 
@@ -57,13 +59,25 @@ std::string Server::configure(int port) {
 void Server::start() {
     int     ret;
     std::string command_ret;
+
+
+    if(daemon(0, 0)) {
+        reporter.error("can't convert into daemon");
+        return ;
+    }
+    reporter.system("convert into daemon");
+
+
+    reporter.system("server start");
     while (running) {
         int localNewSocket = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
         if (localNewSocket >= 0) {
             if (client_socket.size() == MAX_CLIENT) {
+                reporter.system("someone try to connect but server is full");
                 send(localNewSocket, "server is full", 15, 0);
                 close(localNewSocket);
             } else {
+                reporter.system("someone connect to the server");
                 fcntl(localNewSocket, F_SETFL, O_NONBLOCK);
                 client_socket.push_back(localNewSocket);
             }
@@ -74,6 +88,7 @@ void Server::start() {
             int new_socket = client_socket.at(i);
             if (new_socket > 0 && (ret = read(new_socket, buffer, 1024)) >= 0) {
                 if (ret == 0) {
+                    reporter.system("someone disconnect from the server");
                     client_socket.erase(client_socket.begin() + i--);
                     socketListLen--;
                     continue;
@@ -103,5 +118,6 @@ void Server::start() {
         shutdown(server_fd, SHUT_RDWR);
         close(server_fd);
     }
+    reporter.system("server stop");
 }
 

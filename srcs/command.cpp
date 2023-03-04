@@ -67,6 +67,7 @@ std::string Command::interpreteCommand(std::string s) {
         return "exit";
     }
     if (v[0] == "help") {
+        if (onCommandHelp) onCommandHelp();
         return buildHelpString();
     } else if (v[0] == "reload") {
         if (onCommandReload) ret = ret + onCommandReload();

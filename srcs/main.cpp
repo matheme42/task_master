@@ -3,13 +3,25 @@
 
 Application application;
 
+/// logging
+Tintin_reporter reporter;
+
 void sig_handler(int signo)
 {
   if (signo == SIGINT) {
+    reporter.signal("sigint");
     application.sigint();
   } else if (signo == SIGWINCH) {
-   application.sigwinch();
-  } else if (signo == SIGSEGV || signo == SIGTERM || signo == SIGQUIT) {
+    reporter.signal("sigwinch");
+    application.sigwinch();
+  } else if (signo == SIGSEGV) {
+    reporter.signal("sigsegv");
+    application.stop();
+  } else if (signo == SIGTERM) {
+    reporter.signal("sigterm");
+    application.stop();
+  } else if (signo == SIGQUIT) {
+    reporter.signal("sigquit");
     application.stop();
   }
 }
