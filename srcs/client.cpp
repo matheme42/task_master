@@ -1,9 +1,7 @@
 #include "client.hpp"
 
 void Client::stop() {
-    fclose(stdin);
     listen = false;
-    fflush(stdout);
 }
 
 void Client::clear() {
@@ -44,7 +42,12 @@ void Client::autocompletion() {
 }
 
 int Client::manageControlKey(int input) {
-    if (input != 9 && autocompletionString.size() > 0) {
+    if (input == 4) { //ctrl-d
+        if (line.size() == 0) {
+            std::cout << '\r' << DEFAULT_PROMPT << '\n';
+            stop();
+        } 
+    } else if (input != 9 && autocompletionString.size() > 0) {
         line = line + autocompletionString;
         autocompletionStringIdx = 0;
         cursor_position += autocompletionString.size();
@@ -157,64 +160,99 @@ int Client::managekey(int input) {
     return (0);
 }
 
-void Client::start() {
-    std::string command_ret;
-    struct termios original_termios, new_termios;
-    int input;
+void Client::addLineTohistory() {
+    if (line.size() == 0) return ;
+    auto it = std::find(history.begin(), history.end(), line);
+    if (it != history.end()) history.erase(it);
+    history.push_back(line);
+    history_index = history.size();
+}
 
-    history_index = 0;
-    cursor_position = 0;
-    autocompletionStringIdx = 0;
+void Client::newPrompt() {
+        line.clear();
+        cursor_position = 0;
+        std::cout << DEFAULT_PROMPT;
+}
+
+void Client::configureKeyboard() {
     // Sauvegarde les paramètres du terminal d'origine
     tcgetattr(STDIN_FILENO, &original_termios);
    // Configure le nouveau terminal pour l'entrée clavier non bloquante
     new_termios = original_termios;
     new_termios.c_lflag &= ~(ICANON | ECHO);
     tcsetattr(STDIN_FILENO, TCSANOW, &new_termios);
+    fcntl(0, F_SETFL, O_NONBLOCK);
+}
 
-    std::cout << DEFAULT_PROMPT;
-    listen = true;
-    while (listen) {
-        usleep(1000);
-        if ((input = getchar()) == 4) {
-            if (line.size() == 0) {
-                std::cout << '\r' << DEFAULT_PROMPT << '\n';
-                stop();
-            } 
-        }
-        else if (manageControlKey(input)) continue;
-        else if (managekey(input)) {
-            if (client_fd == 0) {
-            if (onMessageReceive && line.size() > 0) {
-                command_ret = onMessageReceive(line.c_str());
-                if (command_ret[0] != '\0') std::cout << command_ret << std::endl;
-            }
-            } else {
-                send(client_fd, line.c_str(), line.size() + 1, 0);
-                int valread = read(client_fd, buffer, 2048);
-                if (!strcmp(buffer, "shutdown")) {
-                    stop();
-                } else {
-                    if (buffer[0] != '\0') std::cout << buffer << std::endl;
-                }
-                bzero(buffer, valread);
-            }
-
-            if (line.size() > 0) {
-            auto it = std::find(history.begin(), history.end(), line);
-            if (it != history.end())
-                history.erase(it);
-            history.push_back(line);
-            history_index = history.size();
-            }
-            line.clear();
-            cursor_position = 0;
-            if (listen) std::cout << DEFAULT_PROMPT;
-        }
-    }
-    
+void Client::restoreKeyboard() {
     // Restaure les paramètres du terminal d'origine
     tcsetattr(STDIN_FILENO, TCSANOW, &original_termios);
+}
+
+void Client::sendCommandLineInLocal() {
+    if (onMessageReceive) {
+        std::string command_ret = onMessageReceive(line.c_str());
+        if (!strcmp(command_ret.c_str(), "exit")) stop();
+        else if (command_ret[0] != '\0') std::cout << command_ret << std::endl;
+    }
+    addLineTohistory();
+    if (listen) newPrompt();
+}
+
+void Client::sendCommandLineInRemote() {
+    send(client_fd, line.c_str(), line.size() + 1, 0);
+    waitingForRemote = true;
+    addLineTohistory();
+}
+
+void Client::readCommandLineInRemote() {
+    int valread = read(client_fd, buffer, 2048);
+    if (valread <= 0) return ;
+    if (!strcmp(buffer, "exit")) {
+        if (!waitingForRemote) std::cout << '\r' << DEFAULT_PROMPT;
+        if (!waitingForRemote) std::cout << LIGHT_RED << "Connection closed by remote host" << DEFAULT_COLOR << std::endl;
+        fflush(stdout);
+        stop();
+    } else if (!strcmp(buffer, "server is full")) {
+        std::cout << '\r' << DEFAULT_PROMPT << LIGHT_RED << buffer << '\n' << DEFAULT_COLOR;
+        fflush(stdout);
+        stop();
+    }
+    else if (buffer[0] != '\0') std::cout << buffer << std::endl;
+    waitingForRemote = false;
+    bzero(buffer, valread);
+    if (listen) newPrompt();
+}
+
+void Client::start() {
+    std::string command_ret;
+    int key;
+
+    history_index = 0;
+    cursor_position = 0;
+    autocompletionStringIdx = 0;
+    listen = true;
+    waitingForRemote = false;
+
+    if (client_fd == 0) {
+        commandList.push_back("background");
+    }
+
+    std::cout << DEFAULT_PROMPT;
+    configureKeyboard();
+    while (listen) {
+        usleep(1000);
+        if (client_fd) readCommandLineInRemote();
+
+        if ((key = getchar()) < 0 || waitingForRemote || manageControlKey(key) || !managekey(key)) continue;
+
+        if (line.size() == 0) {
+            newPrompt();
+            continue;
+        }
+        client_fd ? sendCommandLineInRemote() : sendCommandLineInLocal();
+    }
+    restoreKeyboard();
 }
 
 void Client::start(int port) {
@@ -241,6 +279,7 @@ void Client::start(int port) {
         printf("Connection Failed \n");
         return ;
     }
+    fcntl(client_fd, F_SETFL, O_NONBLOCK);
 
     // start listen stdin
     start();

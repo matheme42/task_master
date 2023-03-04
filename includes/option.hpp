@@ -2,7 +2,6 @@
 #define OPTION_HPP
 
 #include <map>
-#include <string>
 #include <cstring>
 
 #include <ostream>

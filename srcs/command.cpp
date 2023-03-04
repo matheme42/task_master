@@ -32,15 +32,22 @@ void Command::interrupt() {
 std::string Command::buildHelpString() {
     std::string help;
 
-    help = help + "commands:\n";
-    help = help + "  help                             : list all the command\n";
-    help = help + "  reload                           : reload the config file\n";
-    help = help + "  status                           : list the status of all process\n";
-    help = help + "  status   [process name] [etc...] : give the status of the process\n";
-    help = help + "  start    [process name] [etc...] : start the given process\n";
-    help = help + "  restart  [process name] [etc...] : start the given process\n";
-    help = help + "  stop     [process name] [etc...] : stop the given process\n";
-    help = help + "  shutdown / exit / quit           : quit taskmaster";
+    help = help + DARK_BLUE + "system commands:\n" + DEFAULT_COLOR;
+    help = help + GREEN + "  help        " + LIGHT_GREEN + "                         " + DEFAULT_COLOR + ": list all the command\n" + DEFAULT_COLOR;
+    help = help + GREEN + "  reload      " + LIGHT_GREEN + "                         " + DEFAULT_COLOR + ": reload the config file\n" + DEFAULT_COLOR;
+    help = help + GREEN + "  shutdown    " + LIGHT_GREEN + "                         " + DEFAULT_COLOR + ": shutdown taskmaster\n" + DEFAULT_COLOR;
+    help = help + GREEN + "  quit | exit " + LIGHT_GREEN + "                         " + DEFAULT_COLOR + ": exit taskmaster\n" + DEFAULT_COLOR;
+    if (enableBackgroundCommand) {
+    help = help + GREEN + "  background  " + LIGHT_GREEN + " [port number]           " + DEFAULT_COLOR + ": turn taskmaster into sever listen on specified port\n" + DEFAULT_COLOR;
+    }
+
+    help = help + DARK_BLUE + "\nprocess commands:\n" + DEFAULT_COLOR;
+    help = help + GREEN + "  status      " + LIGHT_GREEN + "                         " + DEFAULT_COLOR + ": list the status of all process\n" + DEFAULT_COLOR;
+    help = help + GREEN + "  status      " + LIGHT_GREEN + " [process name] [etc...] " + DEFAULT_COLOR + ": give the status of the process\n" + DEFAULT_COLOR;
+    help = help + GREEN + "  start       " + LIGHT_GREEN + " [process name] [etc...] " + DEFAULT_COLOR + ": start the given process\n" + DEFAULT_COLOR;
+    help = help + GREEN + "  restart     " + LIGHT_GREEN + " [process name] [etc...] " + DEFAULT_COLOR + ": start the given process\n" + DEFAULT_COLOR;
+    help = help + GREEN + "  stop        " + LIGHT_GREEN + " [process name] [etc...] " + DEFAULT_COLOR + ": stop the given process" + DEFAULT_COLOR;
+
     return help;
 }
 
@@ -51,9 +58,13 @@ std::string Command::interpreteCommand(std::string s) {
     std::vector<std::string> v = split(s, " ");
     std::transform(v[0].begin(), v[0].end(), v[0].begin(), [](unsigned char c){ return std::tolower(c); });
 
-    if (v[0] == "shutdown" || v[0] == "exit" || v[0] == "quit") {
+    if (v[0] == "shutdown") {
         if (onCommandShutdown) onCommandShutdown();
-        return "shutdown";
+        return "exit";
+    }
+    if (v[0] == "quit" || v[0] == "exit") {
+        if (onCommandExit) onCommandExit();
+        return "exit";
     }
     if (v[0] == "help") {
         return buildHelpString();
@@ -84,6 +95,29 @@ std::string Command::interpreteCommand(std::string s) {
             }
             return ret;
         }
+    } else if (enableBackgroundCommand && v[0] == "background") {
+        if (v.size() == 1) {
+            ret = ret + DARK_BLUE + "taskmaster: " + LIGHT_RED + "command error: " + WHITE_BOLD + v[0] + DEFAULT_COLOR + ": must be follow by port number";
+            return ret;
+        }
+        if (v.size() > 2) {
+            ret = ret + DARK_BLUE + "taskmaster: " + LIGHT_RED + "command error: " + WHITE_BOLD + v[0] + DEFAULT_COLOR + ": must be follow by only 1 parameter";
+            return ret;
+        }
+        int i = 0;
+        while (v[1][i] && isdigit(v[1][i++])) ;
+        if (v[1][i]) {
+            ret = ret + DARK_BLUE + "taskmaster: " + LIGHT_RED + "command error: " + WHITE_BOLD + v[0] + DEFAULT_COLOR + ": must be an int";
+            return ret;
+        }
+        int port = atoi(v[1].c_str());
+        if (port <= 0 || port > 65535) {
+            ret = ret + DARK_BLUE + "taskmaster: " + LIGHT_RED + "command error: " + WHITE_BOLD + v[0] + DEFAULT_COLOR + ": must between 0 and 65535";
+            return ret;
+        }
+
+        if (onCommandBackground) ret = ret + onCommandBackground(port);
+        return ret;
     }
 
     return "\n";

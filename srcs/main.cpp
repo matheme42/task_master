@@ -9,6 +9,8 @@ void sig_handler(int signo)
     application.sigint();
   } else if (signo == SIGWINCH) {
    application.sigwinch();
+  } else if (signo == SIGSEGV || signo == SIGTERM) {
+    application.stop();
   }
 }
 
@@ -25,6 +27,11 @@ int main(int ac, char **av) {
     if (signal(SIGWINCH, sig_handler) == SIG_ERR)
         printf("can't catch SIGINT\n");
 
+    if (signal(SIGSEGV, sig_handler) == SIG_ERR)
+        printf("can't catch SIGINT\n");
+
+    if (signal(SIGTERM , sig_handler) == SIG_ERR)
+        printf("can't catch SIGINT\n");
 
     application.start();
     return (0);

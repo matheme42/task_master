@@ -1,10 +1,9 @@
 #ifndef SEVER_HPP
 #define SEVER_HPP
 
-#include<signal.h>
+#include <color.hpp>
+
 #include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -12,8 +11,12 @@
 #include <vector>
 #include <functional>
 #include <string>
+#include <fstream>
 
 class Server {
+    #define MAX_CLIENT 3
+    #define LOCKFILE "/var/lock/taskmaster.lock"
+
     private:
         bool                running;
         int                 server_fd;
@@ -26,7 +29,8 @@ class Server {
         std::function<std::string(const char *)> onMessageReceive;
 
         Server();
-        void start(int port);
+        std::string configure(int port);
+        void start();
         void stop();
 };
 

@@ -2,7 +2,6 @@
 
 void Server::stop() {
     running = false;
-    fclose(stdin);
 }
 
 Server::Server() {
@@ -10,22 +9,35 @@ Server::Server() {
     server_fd = 0;
 }
 
-void Server::start(int port) {
-    running = true;
+std::string Server::configure(int port) {
+    std::string ret;
+    running = false;
+
+
+    if (FILE *file = fopen(LOCKFILE, "r+")) {
+        fclose(file);
+        ret = ret + LIGHT_RED + "an instance of taskmaster is already running";
+        return (ret);
+    }
+
+    std::ofstream outfile (LOCKFILE);
+    outfile.close();
+
+
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("socket failed");
-        exit(EXIT_FAILURE);
+        ret = ret + "socket failed";
+        ret = ret + strerror(errno);
+        return (ret);
     }
 
     int opt = 1;
     // Forcefully attaching socket to the port 8080
-    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
-        perror("setsockopt");
-        exit(EXIT_FAILURE);
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
+        ret = ret + "setsockopt";
+        ret = ret + strerror(errno);
+        return (ret);
     }
-
-    fcntl(server_fd, F_SETFL, O_NONBLOCK);
 
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
@@ -33,23 +45,41 @@ void Server::start(int port) {
 
    // Forcefully attaching socket to the port 8080
     if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
-        perror("bind failed");
-        exit(EXIT_FAILURE);
+        ret = ret + LIGHT_RED;
+        ret = ret + "the port: ";
+        ret = ret + std::to_string(port);
+        ret = ret + " is already use";
+        return (ret);
+    } else if (listen(server_fd, 3) < 0) {
+        ret = ret + "listen";
+        ret = ret + strerror(errno);
+        return (ret);
+    } else if(daemon(0, 0)) {
+        ret = ret + "daemon";
+        ret = ret + strerror(errno);
+        return (ret);
     }
 
-    if (listen(server_fd, 3) < 0) {
-        perror("listen");
-        exit(EXIT_FAILURE);
-    }
+    fcntl(server_fd, F_SETFL, O_NONBLOCK);
+    running = true;
+    return (ret);
+}
 
+void Server::start() {
     int     ret;
     std::string command_ret;
     while (running) {
         int localNewSocket = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
-        if (localNewSocket > 0) {
-            client_socket.push_back(localNewSocket);
-            fcntl(localNewSocket, F_SETFL, O_NONBLOCK);
+        if (localNewSocket >= 0) {
+            if (client_socket.size() == MAX_CLIENT) {
+                send(localNewSocket, "server is full", 15, 0);
+                close(localNewSocket);
+            } else {
+                fcntl(localNewSocket, F_SETFL, O_NONBLOCK);
+                client_socket.push_back(localNewSocket);
+            }
         }
+
         int socketListLen = client_socket.size();
         for (int i = 0; i < socketListLen; i++) {
             int new_socket = client_socket.at(i);
@@ -75,6 +105,7 @@ void Server::start(int port) {
     while (client_socket.size()) {
         int socket = client_socket.at(0);
         client_socket.erase(client_socket.begin());
+        send(socket, "exit", 5, 0);
         shutdown(socket, SHUT_RDWR);
         close(socket);
     }
@@ -83,5 +114,7 @@ void Server::start(int port) {
         shutdown(server_fd, SHUT_RDWR);
         close(server_fd);
     }
+
+    remove("/var/lock/taskmaster.lock");
 }
 

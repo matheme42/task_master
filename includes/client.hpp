@@ -1,25 +1,23 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
-#include<signal.h>
-#include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+// socket
 #include <sys/socket.h>
-#include <unistd.h>
+#include <arpa/inet.h>
 #include <fcntl.h>
+
+// std
 #include <vector>
 #include <functional>
 #include <string>
-#include <ostream>
-#include <iostream>
+#include <string.h>
+#include <algorithm>
+
+// termcaps
 #include <termios.h>
 #include <termcaps.hpp>
 #include <color.hpp>
-#include <algorithm>
-#include <arpa/inet.h>
-#include <sys/socket.h>
+
 
 class Client
 {
@@ -36,10 +34,12 @@ class Client
         int cursor_position;
         int autocompletionStringIdx;
         std::string autocompletionString;
+        struct termios original_termios, new_termios;
 
 
         std::vector <std::string> history;
         int history_index;
+        bool waitingForRemote;
 
         int client_fd = 0;
         char buffer[2048] = { 0 };
@@ -48,6 +48,13 @@ class Client
         int manageControlKey(int input);
         int managekey(int input);
         void autocompletion();
+        void addLineTohistory();
+        void newPrompt();
+        void restoreKeyboard();
+        void configureKeyboard();
+        void sendCommandLineInLocal();
+        void sendCommandLineInRemote();
+        void readCommandLineInRemote();
         bool listen;
     public:
         std::function<std::string(const char *)> onMessageReceive;

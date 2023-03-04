@@ -2,6 +2,7 @@
 #define TERMCAPS
 
 #include <iostream>
+
 #include <term.h>
 #include <unistd.h>
 #include <sys/ioctl.h>

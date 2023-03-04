@@ -12,5 +12,4 @@
 #define WHITE_BOLD   "\033[37m"
 #define DEFAULT_COLOR "\033[0m"
 
-
 #endif
