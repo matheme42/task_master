@@ -217,9 +217,6 @@ void Client::start() {
     tcsetattr(STDIN_FILENO, TCSANOW, &original_termios);
 }
 
-       #include <arpa/inet.h>
-       #include <sys/socket.h>
-
 void Client::start(int port) {
     bzero(buffer, sizeof(buffer));
 
@@ -244,10 +241,8 @@ void Client::start(int port) {
         printf("Connection Failed \n");
         return ;
     }
-   // send(client_fd, hello, strlen(hello), 0);
-   // valread = read(client_fd, buffer, 1024);
-   // printf("%s %d\n", buffer, valread);
 
+    // start listen stdin
     start();
   
     // closing the connected socket

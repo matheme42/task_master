@@ -18,6 +18,8 @@
 #include <termcaps.hpp>
 #include <color.hpp>
 #include <algorithm>
+#include <arpa/inet.h>
+#include <sys/socket.h>
 
 class Client
 {

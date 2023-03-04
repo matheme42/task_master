@@ -13,6 +13,10 @@ void sig_handler(int signo)
 }
 
 int main(int ac, char **av) {
+    if (geteuid() != 0) {
+      fprintf(stderr, "App needs root\n");
+      exit(1);
+    }
     application.initWithArg(ac, av);
 
     if (signal(SIGINT, sig_handler) == SIG_ERR)

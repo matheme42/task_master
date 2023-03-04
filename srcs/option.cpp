@@ -60,11 +60,14 @@ int Option::checkWorkingArg(char *s) {
 
 void Option::usage() {
     std::cout << "taskmaster:" << std::endl;
-    std::cout << " ./taskmaster [-l log file path][-p port] config file" << std::endl;
-    std::cout << " ./taskmaster [-l log file path][-p port]{-c config file}" << std::endl;
-
-    std::cout << "  required:" << std::endl;
-    std::cout << "    a taskmaster config file" << std::endl;
+    std::cout << "  in local:" << std::endl;
+    std::cout << "    ./taskmaster [-l log file path] config file" << std::endl;
+    std::cout << "    ./taskmaster [-l log file path] {-c config file}" << std::endl;
+    std::cout << "  as server:" << std::endl;
+    std::cout << "    ./taskmaster [-l log file path] -p port config file" << std::endl;
+    std::cout << "    ./taskmaster [-l log file path] -p port {-c config file}" << std::endl;
+    std::cout << "  as client:" << std::endl;
+    std::cout << "    ./taskmaster -p port" << std::endl;
 
     std::cout << "  options:" << std::endl;
     std::cout << "    -p: port number between 0 and 65535" << std::endl;
