@@ -12,6 +12,9 @@
 #include <functional>
 #include <string>
 #include <fstream>
+#include <sys/stat.h>
+
+#include <logging.hpp>
 
 class Server {
     #define MAX_CLIENT 3
@@ -24,8 +27,12 @@ class Server {
         struct sockaddr_in  address;
         socklen_t           addrlen;
 
+        int Demonize();
     public:
         std::function<std::string(const char *)> onMessageReceive;
+        std::function<std::string(std::string)> decrypter;
+        std::function<std::string(std::string)> encrypter;
+
 
         Server();
         std::string configure(int port);

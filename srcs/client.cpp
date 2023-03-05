@@ -200,7 +200,12 @@ void Client::sendCommandLineInLocal() {
 }
 
 void Client::sendCommandLineInRemote() {
-    send(client_fd, line.c_str(), line.size() + 1, 0);
+    if (encrypter) {
+        std::string encrypted = encrypter(line);
+        send(client_fd, encrypted.c_str(), encrypted.size() + 1, 0);
+    } else {
+        send(client_fd, line.c_str(), line.size() + 1, 0);
+    }
     waitingForRemote = true;
     addLineTohistory();
 }
@@ -208,6 +213,10 @@ void Client::sendCommandLineInRemote() {
 void Client::readCommandLineInRemote() {
     int valread = read(client_fd, buffer, 2048);
     if (valread <= 0) return ;
+    if (decrypter) {
+        std::string decrypted = decrypter(buffer);
+        strcpy(buffer, decrypted.c_str());
+    }
     if (!strcmp(buffer, "exit")) {
         if (!waitingForRemote) std::cout << '\r' << DEFAULT_PROMPT;
         if (!waitingForRemote) std::cout << LIGHT_RED << "Connection closed by remote host" << DEFAULT_COLOR << std::endl;

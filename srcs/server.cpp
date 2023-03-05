@@ -1,5 +1,4 @@
 #include "server.hpp"
-#include "logging.hpp"
 
 void Server::stop() {
     running = false;
@@ -8,6 +7,67 @@ void Server::stop() {
 Server::Server() {
     bzero(buffer, sizeof(buffer));
     server_fd = 0;
+}
+
+int Server::Demonize() {
+    pid_t pid, sid;
+    /* données qui peut recevoir l'identifiant d'un processus
+    (ce que l'on appelle le pid: process identifier) et qui sont
+    par définition des entiers */
+ 
+    pid = fork();
+    /* création d'un processus appelé processus fils qui fonctionne
+    en parallèle du premier processus appelé processus père */
+ 
+    if( pid < 0)
+        return ( EXIT_FAILURE );
+    else if( pid > 0) {
+        reporter.system("daemonize pid: " + std::to_string(pid));
+        exit ( EXIT_SUCCESS );
+    }
+    /* fork ne renvoit pas la même chose au deux processus.
+    > pour le fils il renvois 0
+    > pour le père il renvois le pid du fils dans mon cas on arrête le
+    programme pour le père */
+ 
+    umask(0);
+    /* donne les droit par défaut 0777 */
+ 
+    sid = setsid();
+    /* setsid obtient pour valeur le pid du processus fils mais échoue
+    dans certains cas comme par exemple celui ou le processus fils à le
+    même pid qu'un processus déjà existant */
+ 
+    if( sid < 0 )
+    {
+        perror( "daemonize::sid" );
+        return ( EXIT_FAILURE );
+    }
+    /* en cas d'échec de setsid on a sid < 0 et alors on interrompt la
+    procedure */
+ 
+    if( chdir("/") < 0 )
+    {
+        perror( "daemonize::chdir" );
+        return ( EXIT_FAILURE );
+    }
+
+    close( STDIN_FILENO );
+    close( STDOUT_FILENO );
+    close( STDERR_FILENO );
+    /* le fils partage les descripteurs de fichier du père sauf si on les
+    ferme et dans ce cas ceux du père ne seront pas fermés */
+
+
+   if (open("/dev/null", O_RDWR) != 0)
+   {
+       return ( EXIT_FAILURE );
+   }
+
+   (void) dup(0);
+   (void) dup(0);
+
+    return ( EXIT_SUCCESS );
 }
 
 std::string Server::configure(int port) {
@@ -61,12 +121,10 @@ void Server::start() {
     std::string command_ret;
 
 
-    if(daemon(0, 0)) {
+    if(Demonize()) {
         reporter.error("can't convert into daemon");
         return ;
     }
-    reporter.system("convert into daemon");
-
 
     reporter.system("server start");
     while (running) {
@@ -93,12 +151,16 @@ void Server::start() {
                     socketListLen--;
                     continue;
                 }
-                buffer[ret - 1] = '\0';
-                if (onMessageReceive) command_ret = onMessageReceive(buffer);
+                if (onMessageReceive) {
+                    if (decrypter) command_ret = onMessageReceive(decrypter(buffer).c_str());
+                    else command_ret = onMessageReceive(buffer);
+                }
                 if (command_ret[0] != '\0') {
-                    send(new_socket, command_ret.c_str(), command_ret.size(), 0);
+                    if (encrypter) send(new_socket, encrypter(command_ret).c_str(), command_ret.size(), 0);
+                    else send(new_socket, command_ret.c_str(), command_ret.size(), 0);
                 } else {
-                    send(new_socket, "", 1, 0);
+                    if (encrypter) send(new_socket,  encrypter("").c_str(), 1, 0);
+                    else send(new_socket, "", 1, 0);
                 }
                 bzero(buffer, ret);
         }

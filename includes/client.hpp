@@ -59,6 +59,9 @@ class Client
         bool listen;
     public:
         std::function<std::string(const char *)> onMessageReceive;
+        std::function<std::string(std::string)> encrypter;
+        std::function<std::string(std::string)> decrypter;
+
 
         void start(int port);
         void start();

@@ -40,42 +40,47 @@ bool Application::CheckForInstance() {
 
 void Application::start() {
     if (mode == NONE) {
-        reporter.system("system start (local)");
+        reporter.system("start (local)");
         command.enableBackgroundCommand = true;
         if (CheckForInstance()) {
-            reporter.system("system stop (local)");
+            reporter.system("stop");
+            reporter.close();
             return ;
         }
         client.start();
         if (restart) {
-            reporter.system("system stop (local)");
+            reporter.system("switch to server mode");
             start();
             return ;
         } 
         remove(LOCKFILE);
-        reporter.system("system stop (local)");
+        reporter.system("stop");
+        reporter.close();
         return ;
     }
 
     if (mode == SERVER) {
-        reporter.system("system start (server)");
+        reporter.system("start (server)");
         command.enableBackgroundCommand = false;
         if (!restart) {
             if (CheckForInstance()) {
-                reporter.system("system stop (server)");
+                reporter.system("stop");
+                reporter.close();
                 return ;
             }
             std::string ret = server.configure(preference.port);
             if (ret.size()) {
                 std::cout << LIGHT_RED << ret << std::endl;
                 remove(LOCKFILE);
-                reporter.system("system stop (server)");
+                reporter.system("stop");
+                reporter.close();
                 return ;
             }
         }
         server.start();
         remove(LOCKFILE);
-        reporter.system("system stop (server)");
+        reporter.system("stop");
+        reporter.close();
         return ;
     }
     client.start(preference.port);
@@ -115,18 +120,31 @@ void Application::initWithArg(int ac, char **av) {
     else if (preference.config_path.size() == 0) mode = CLIENT;
     else mode = SERVER;
 
+    client.encrypter = ([&] (std::string message) {
+        std::string encryptedMessage;
+        encryptedMessage = cryptage.crypter(message, preference.crytage_key);
+        return encryptedMessage;
+    });
+
+    client.decrypter = ([&] (std::string message) {
+        std::string decryptedMessage;
+        decryptedMessage = cryptage.decrypter(message, preference.crytage_key);
+        return decryptedMessage;
+    });
+
     if (mode == CLIENT) return ;
 
     configureLogger();
+
     setCommandCallback();
+    setServerCallback();
+
     client.onMessageReceive = ([&] (const char *message) {
         reporter.prompt(message);
         return command.interprete(message);
     });
-    server.onMessageReceive = ([&] (const char *message) {
-        reporter.prompt(message);
-        return command.interprete(message);
-    });
+
+
 }
 
 void Application::sigint() {
@@ -137,6 +155,25 @@ void Application::sigint() {
 
 void Application::sigwinch() {
     client.redraw();
+}
+
+void Application::setServerCallback() {
+    server.decrypter = ([&] (std::string message) {
+        std::string decryptedMessage;
+        decryptedMessage = cryptage.decrypter(message, preference.crytage_key);
+        return decryptedMessage;
+    });
+
+    server.encrypter = ([&] (std::string message) {
+        std::string encryptedMessage;
+        encryptedMessage = cryptage.crypter(message, preference.crytage_key);
+        return encryptedMessage;
+    });
+
+    server.onMessageReceive = ([&] (const char *message) {
+        reporter.prompt(message);
+        return command.interprete(message);
+    });
 }
 
 void Application::setCommandCallback() {

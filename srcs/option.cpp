@@ -18,6 +18,18 @@ int Option::checkWorkingArg(char *s) {
         }
         return (i);
     }
+    if (state[working_option] == type_t::sentence) {
+        if (strlen(s) == 0) {
+            std::cout << "option -" << working_option << ": can't be empty" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        while (s[i] && isprint(s[i++])) ;
+        if (s[i]) {
+            std::cout << "option -" << working_option << ": must be a printable string" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        return (i);
+    }
     if (state[working_option] == type_t::infile) {
         if (FILE *file = fopen(s, "r")) {
             fclose(file);
@@ -64,10 +76,10 @@ void Option::usage() {
     std::cout << "    ./taskmaster [-l log file path] config file" << std::endl;
     std::cout << "    ./taskmaster [-l log file path] {-c config file}" << std::endl;
     std::cout << "  as server:" << std::endl;
-    std::cout << "    ./taskmaster [-l log file path] -p port config file" << std::endl;
-    std::cout << "    ./taskmaster [-l log file path] -p port {-c config file}" << std::endl;
+    std::cout << "    ./taskmaster [-l log file path] [-k cryptage key] -p port config file" << std::endl;
+    std::cout << "    ./taskmaster [-l log file path] [-k cryptage key] -p port {-c config file}" << std::endl;
     std::cout << "  as client:" << std::endl;
-    std::cout << "    ./taskmaster -p port" << std::endl;
+    std::cout << "    ./taskmaster [-k decryptage key] -p port" << std::endl;
 
     std::cout << "  options:" << std::endl;
     std::cout << "    -p: port number between 0 and 65535" << std::endl;
@@ -82,6 +94,7 @@ int Option::fillOption(char *s) {
     if (working_option == 'h') usage();
     if (working_option == 'c') config_path = s;
     else if (working_option == 'l') log_path = s;
+    else if (working_option == 'k') crytage_key = s;
     else if (working_option == 'p') {
         port = atoi(s);
         if (port <= 0 || port > 65535) {

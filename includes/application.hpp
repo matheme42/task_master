@@ -6,6 +6,7 @@
 #include <option.hpp>
 #include <command.hpp>
 #include <logging.hpp>
+#include <cryptage.hpp>
 
 #include <libgen.h>
 #include <sys/stat.h>
@@ -24,12 +25,14 @@ class Application {
         Client client;
         Option preference;
         Command command;
+        Cryptage cryptage;
 
         /// a flag to tell the application need to restart
         bool restart;
 
         int  create_directory_recursive(char *dir, mode_t mode);
         void setCommandCallback();
+        void setServerCallback();
         void configureLogger();
         bool CheckForInstance();
     public:

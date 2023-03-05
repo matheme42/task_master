@@ -11,6 +11,8 @@
 #include <chrono>
 #include <sstream>
 
+#include <syslog.h>
+
 #include <color.hpp>
 
 class Tintin_reporter {
@@ -23,6 +25,7 @@ class Tintin_reporter {
         void log(std::string message, std::string color, std::string level);
     public:
         void init(std::string outputfile);
+        void close();
 
         void system(std::string message);
         void prompt(std::string message);

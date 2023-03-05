@@ -2,6 +2,11 @@
 
 void Tintin_reporter::init(std::string outputfile) {
     this->outputfile = outputfile;
+    openlog("taskmaster ", LOG_PID, LOG_DAEMON); // ouverture du canal syslog
+}
+
+void Tintin_reporter::close() {
+    closelog(); // fermeture du canal syslog
 }
 
 std::string Tintin_reporter::getTime() {
@@ -38,6 +43,7 @@ void Tintin_reporter::log(std::string message, std::string color, std::string le
 void Tintin_reporter::system(std::string message) {
     if (outputfile.size() == 0) return ;
     log(message, DARK_BLUE, "[system] ");
+    syslog(LOG_INFO, "%s", message.c_str()); // écriture du message dans le journal
 }
 
 void Tintin_reporter::prompt(std::string message) {
@@ -53,9 +59,11 @@ void Tintin_reporter::command(std::string message) {
 void Tintin_reporter::signal(std::string message) {
     if (outputfile.size() == 0) return ;
     log(message, PINK, "[signal] ");
+    syslog(LOG_WARNING, "%s", message.c_str()); // écriture du message dans le journal
 }
 
 void Tintin_reporter::error(std::string message) {
     if (outputfile.size() == 0) return ;
     log(message, DARK_RED, "[error]  ");
+    syslog(LOG_ERR, "%s", message.c_str()); // écriture du message dans le journal
 }
