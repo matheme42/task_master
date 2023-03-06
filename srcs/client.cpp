@@ -5,17 +5,15 @@ void Client::stop() {
 }
 
 void Client::clear() {
-    line.clear();
-    cursor_position = 0;
     std::cout << '\n';
-    std::cout << DEFAULT_PROMPT;
+    newPrompt();
     fflush(stdout);
 }
 
 void Client::autocompletion() {
     int localAutocompletionStringIdx = 0;
    // if (line.size() == 0) return ;
-    for (int i = 0; i < commandList.size(); i++) {
+    for (size_t i = 0; i < commandList.size(); i++) {
         if (commandList[i].find(line) == 0) {
             localAutocompletionStringIdx++;
             if (localAutocompletionStringIdx <= autocompletionStringIdx) {
@@ -44,7 +42,9 @@ void Client::autocompletion() {
 int Client::manageControlKey(int input) {
     if (input == 4) { //ctrl-d
         if (line.size() == 0) {
-            std::cout << '\r' << DEFAULT_PROMPT << '\n';
+            termcaps.delLine();
+            newPrompt();
+            std::cout << '\n';
             stop();
         } 
     } else if (input != 9 && autocompletionString.size() > 0) {
@@ -65,35 +65,35 @@ int Client::manageControlKey(int input) {
                 if (history_index > 0) {
                         termcaps.delLine();
                         line.clear();
+                        newPrompt();
                         line = history[--history_index];
                         cursor_position = line.size();
-                        std::cout << DEFAULT_PROMPT << line;
+                        std::cout << line;
                     } else {
                         history_index = -1;
                         termcaps.delLine();
-                        line.clear();
-                        cursor_position = 0;
-                        std::cout << DEFAULT_PROMPT;
+                        newPrompt();
                     }
                 }
             } else if (input == 66) {
             if (history.size() > 0) {
                 history_index++;
-                if (history_index >= history.size()) {
+                if (history_index >= (int)history.size()) {
                     termcaps.delLine();
                     line.clear();
                     history_index = history.size();
                     cursor_position = 0;
-                    std::cout << DEFAULT_PROMPT;
+                    newPrompt();
                 } else {
                     termcaps.delLine();
                     line.clear();
+                    newPrompt();
                     line = history[history_index];
                     cursor_position = line.size();
-                    std::cout << DEFAULT_PROMPT << line;
+                    std::cout << line;
                 }
             }
-        } else if (input == 67 && cursor_position < line.size()) {
+        } else if (input == 67 && cursor_position < (int)line.size()) {
             cursor_position += 1;
             if ((cursor_position + DEFAULT_PROMPT_SIZE + 1) % termcaps.column_count == 0) {
                 termcaps.moveDown();
@@ -134,9 +134,7 @@ int Client::manageControlKey(int input) {
         return (1);
     } else if (input == 12) { /// clear
         termcaps.clear();
-        line.clear();
-        cursor_position = 0;
-        std::cout << DEFAULT_PROMPT;
+        newPrompt();
         return (1);
     }
     return (0);
@@ -146,7 +144,7 @@ int Client::managekey(int input) {
     std::cout << (char)input;
     if (input == '\n') return (1);
     cursor_position += 1;
-    if (cursor_position > line.size())
+    if (cursor_position > (int)line.size())
         line.push_back((char)input);
     else {
         termcaps.saveCursorPosition();
@@ -161,7 +159,7 @@ int Client::managekey(int input) {
 }
 
 void Client::addLineTohistory() {
-    if (line.size() == 0) return ;
+    if (line.size() == 0 || !authenticated) return ;
     auto it = std::find(history.begin(), history.end(), line);
     if (it != history.end()) history.erase(it);
     history.push_back(line);
@@ -171,7 +169,13 @@ void Client::addLineTohistory() {
 void Client::newPrompt() {
         line.clear();
         cursor_position = 0;
-        std::cout << DEFAULT_PROMPT;
+
+    if (!authenticated) {
+        termcaps.delLine();
+        std::cout << DARK_BLUE << "requesting password: " << DEFAULT_COLOR;
+        return ;
+    }
+    std::cout << DEFAULT_PROMPT;
 }
 
 void Client::configureKeyboard() {
@@ -227,9 +231,14 @@ void Client::readCommandLineInRemote() {
         fflush(stdout);
         stop();
     }
-    else if (buffer[0] != '\0') std::cout << buffer << std::endl;
+    else if (!strcmp(buffer, "password: ")) {
+        authenticated = false;
+    } else if (!strcmp(buffer, "authenticate")) {
+        authenticated = true;
+    } else if (buffer[0] != '\0') std::cout << buffer << std::endl;
     waitingForRemote = false;
     bzero(buffer, valread);
+
     if (listen) newPrompt();
 }
 
@@ -239,6 +248,7 @@ void Client::start() {
 
     history_index = 0;
     cursor_position = 0;
+    authenticated = true;
     autocompletionStringIdx = 0;
     listen = true;
     waitingForRemote = false;
@@ -271,7 +281,7 @@ void Client::start() {
 void Client::start(int port) {
     bzero(buffer, sizeof(buffer));
 
-    int status, valread;
+    int status;
     struct sockaddr_in serv_addr;
     if ((client_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         printf("\n Socket creation error \n");

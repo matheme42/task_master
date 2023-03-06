@@ -68,7 +68,7 @@ void Application::start() {
                 reporter.close();
                 return ;
             }
-            std::string ret = server.configure(preference.port);
+            std::string ret = server.configure(preference.port, preference.master_password);
             if (ret.size()) {
                 std::cout << LIGHT_RED << ret << std::endl;
                 remove(LOCKFILE);
@@ -91,17 +91,22 @@ void Application::configureLogger() {
         std::cout << DARK_BLUE << "log path not set. using default path: " << WHITE_BOLD << LOGGING_DEFAULT_PATH << std::endl;
 
         std::string path = LOGGING_DEFAULT_PATH;
-        std::string directory = path.substr(0, path.find_last_of('/'));
-        if (create_directory_recursive((char*)directory.c_str(), S_IRWXU))
-            std::cout << "can't log to file:" << path;
+        if (path.find('/') != std::string::npos) {
+            std::string directory = path.substr(0, path.find_last_of('/'));
+            if (create_directory_recursive((char*)directory.c_str(), S_IRWXU))
+                std::cout << "can't log to file:" << path;
+        }
 
         reporter.init(LOGGING_DEFAULT_PATH);
     } else {
 
         std::string path = preference.log_path;
         std::string directory = path.substr(0, path.find_last_of('/'));
-        if (create_directory_recursive((char*)directory.c_str(), S_IRWXU))
-            std::cout << "can't log to file:" << path;
+        if (path.find('/') != std::string::npos) {
+            if (create_directory_recursive((char*)directory.c_str(), S_IRWXU))
+                std::cout << "can't log to file:" << path;
+        }
+
         reporter.init(preference.log_path);
     }
 }
@@ -190,7 +195,7 @@ void Application::setCommandCallback() {
 
     command.onCommandBackground = ([&](int port){
         reporter.command("background port: " + std::to_string(port));
-        std::string ret = server.configure(port);
+        std::string ret = server.configure(port, "");
         if (ret.size()) {
             ret = LIGHT_RED + ret + DEFAULT_COLOR;
             return ret;

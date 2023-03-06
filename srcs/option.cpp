@@ -47,10 +47,10 @@ int Option::checkWorkingArg(char *s) {
         if (FILE *file = fopen(s, "r+")) {
             fclose(file);
             std::string line;
-            std::cout << "option -" << working_option << ": a file already exist override / append / cancel ? (Y / A / C): ";
+            std::cout << "option -" << working_option << ": a file already exist override / append / cancel ? (O / A / C): ";
             std::getline(std::cin, line);
             if (line[0] == 'C' || line[0] == 'c') exit(0);
-            else if (line[0] == 'Y' || line[0] == 'y') remove(s);
+            else if (line[0] == 'O' || line[0] == 'o') remove(s);
         } else if (FILE *file = fopen(s, "w")) {
             fclose(file);
             remove(s);
@@ -74,10 +74,10 @@ void Option::usage() {
     std::cout << "taskmaster:" << std::endl;
     std::cout << "  in local:" << std::endl;
     std::cout << "    ./taskmaster [-l log file path] config file" << std::endl;
-    std::cout << "    ./taskmaster [-l log file path] {-c config file}" << std::endl;
+    std::cout << "    ./taskmaster [-l log file path] -c config file" << std::endl;
     std::cout << "  as server:" << std::endl;
-    std::cout << "    ./taskmaster [-l log file path] [-k cryptage key] -p port config file" << std::endl;
-    std::cout << "    ./taskmaster [-l log file path] [-k cryptage key] -p port {-c config file}" << std::endl;
+    std::cout << "    ./taskmaster [-l log file path] [-k cryptage key] [-P master password] -p port config file" << std::endl;
+    std::cout << "    ./taskmaster [-l log file path] [-k cryptage key] [-P master password] -p port -c config file" << std::endl;
     std::cout << "  as client:" << std::endl;
     std::cout << "    ./taskmaster [-k decryptage key] -p port" << std::endl;
 
@@ -85,6 +85,9 @@ void Option::usage() {
     std::cout << "    -p: port number between 0 and 65535" << std::endl;
     std::cout << "    -c: path to a taskmaster config file" << std::endl;
     std::cout << "    -l: path to log taskmaster commands" << std::endl;
+    std::cout << "    -P: set a master password to the server" << std::endl;
+    std::cout << "    -k: set a cryptage key use to encrypt the connection" << std::endl;
+
     exit(0);
 }
 
@@ -101,7 +104,7 @@ int Option::fillOption(char *s) {
             std::cout << "option -" << working_option << ": must between 0 and 65535" << std::endl;
             exit(EXIT_FAILURE); 
         }
-    }
+    } else if (working_option == 'P') master_password = s;
 
     return (i);
 }

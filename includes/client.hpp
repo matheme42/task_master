@@ -41,6 +41,7 @@ class Client
         std::vector <std::string> history;
         int history_index;
         bool waitingForRemote;
+        bool authenticated;
 
         int client_fd = 0;
         char buffer[2048] = { 0 };

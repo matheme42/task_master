@@ -30,7 +30,7 @@ OBJ_NAME		= $(NAME_SRC:.cpp=.o)
 
 OBJS = $(addprefix $(OBJ_PATH)/,$(OBJ_NAME))
 
-DEBUG_FLAG = #-Wall -Wextra #-fsanitize=address
+DEBUG_FLAG = -Wall -Wextra -Werror -fsanitize=address
 
 OPTIMISATION_FLAG = -ofast #-o3 #-ofast  pas d'interet pour l'instant
 

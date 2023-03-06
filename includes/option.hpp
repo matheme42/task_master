@@ -18,7 +18,8 @@ class Option {
             {'c', type_t::infile},
             {'l', type_t::outfile},
             {'h', type_t::none},
-            {'k', type_t::sentence}
+            {'k', type_t::sentence},
+            {'P', type_t::sentence}
         };
 
         /// local variable
@@ -34,6 +35,7 @@ class Option {
         std::string config_path;
         std::string log_path;
         std::string crytage_key;
+        std::string master_password;
         int port;
 
         Option();

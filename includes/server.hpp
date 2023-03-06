@@ -13,6 +13,7 @@
 #include <string>
 #include <fstream>
 #include <sys/stat.h>
+#include <algorithm>
 
 #include <logging.hpp>
 
@@ -23,9 +24,12 @@ class Server {
         bool                running;
         int                 server_fd;
         std::vector<int>    client_socket;
+        std::vector<int>    authenticate_client;
         char                buffer[1024];
         struct sockaddr_in  address;
         socklen_t           addrlen;
+        std::string         master_password;
+
 
         int Demonize();
     public:
@@ -33,9 +37,8 @@ class Server {
         std::function<std::string(std::string)> decrypter;
         std::function<std::string(std::string)> encrypter;
 
-
         Server();
-        std::string configure(int port);
+        std::string configure(int port, std::string master_password);
         void start();
         void stop();
 };

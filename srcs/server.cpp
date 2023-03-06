@@ -46,11 +46,11 @@ int Server::Demonize() {
     /* en cas d'échec de setsid on a sid < 0 et alors on interrompt la
     procedure */
  
-    if( chdir("/") < 0 )
-    {
-        perror( "daemonize::chdir" );
-        return ( EXIT_FAILURE );
-    }
+   // if( chdir("/") < 0 )
+  //  {
+   //     perror( "daemonize::chdir" );
+   //     return ( EXIT_FAILURE );
+   // }
 
     close( STDIN_FILENO );
     close( STDOUT_FILENO );
@@ -70,9 +70,11 @@ int Server::Demonize() {
     return ( EXIT_SUCCESS );
 }
 
-std::string Server::configure(int port) {
+std::string Server::configure(int port, std::string master_password) {
     std::string ret;
+
     running = false;
+    this->master_password = master_password;
 
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -132,10 +134,17 @@ void Server::start() {
         if (localNewSocket >= 0) {
             if (client_socket.size() == MAX_CLIENT) {
                 reporter.system("someone try to connect but server is full");
-                send(localNewSocket, "server is full", 15, 0);
+                if (encrypter) send(localNewSocket, encrypter("server is full").c_str(), 15, 0);
+                else send(localNewSocket, "server is full", 15, 0);
                 close(localNewSocket);
             } else {
-                reporter.system("someone connect to the server");
+                reporter.system("someone connect to the server");      
+                if (master_password.size() != 0) {
+                    if (encrypter) send(localNewSocket, encrypter("password: ").c_str(), 10, 0);
+                    else send(localNewSocket, "password", 10, 0);
+                } else {
+                    authenticate_client.push_back(localNewSocket);
+                }
                 fcntl(localNewSocket, F_SETFL, O_NONBLOCK);
                 client_socket.push_back(localNewSocket);
             }
@@ -148,9 +157,29 @@ void Server::start() {
                 if (ret == 0) {
                     reporter.system("someone disconnect from the server");
                     client_socket.erase(client_socket.begin() + i--);
+                    authenticate_client.erase( std::remove( authenticate_client.begin(), authenticate_client.end(), new_socket), authenticate_client.end() );
                     socketListLen--;
                     continue;
                 }
+
+                /// check password
+                if (std::find(authenticate_client.begin(), authenticate_client.end(), new_socket) == authenticate_client.end()) {
+                    
+                    int cmp;
+                    if (decrypter) cmp = strcmp(decrypter(buffer).c_str(), master_password.c_str());
+                    else cmp = strcmp(buffer, master_password.c_str());
+                    if (cmp != 0) {
+                        if (encrypter) send(new_socket, encrypter("password: ").c_str(), 10, 0);
+                        else send(new_socket, "password: ", 10, 0);
+                    } else {
+                        authenticate_client.push_back(new_socket);
+                        if (encrypter) send(new_socket, encrypter("authenticate").c_str(), 12, 0);
+                        else send(new_socket, "authenticate", 12, 0);
+                    }
+                    bzero(buffer, ret);
+                    continue;
+                }
+
                 if (onMessageReceive) {
                     if (decrypter) command_ret = onMessageReceive(decrypter(buffer).c_str());
                     else command_ret = onMessageReceive(buffer);
