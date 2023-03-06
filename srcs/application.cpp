@@ -19,10 +19,44 @@ int  Application::create_directory_recursive(char *dir, mode_t mode)
 
 
 bool Application::CheckForInstance() {
-   
+
+    DIR* dir = opendir("/proc");
+    if (dir == nullptr) {
+        std::cerr << "Failed to open /proc directory\n";
+        return 1;
+    }
+    pid_t pid = getpid();
+
+    dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        // Check if the entry is a directory and its name is a number
+        if (entry->d_type == DT_DIR && std::isdigit(entry->d_name[0])) {
+            std::string cmdline_file = std::string("/proc/") + entry->d_name + "/status";
+            std::ifstream ifs(cmdline_file);
+            std::string cmdline;
+            std::getline(ifs, cmdline);
+            cmdline = cmdline.substr(cmdline.find("\t") + 1);
+
+            // Check if the cmdline contains the process name
+            if (cmdline.find("taskmaster") != std::string::npos && std::stoi(entry->d_name) != pid) {
+                std::string ret = "An instance of taskmaster is already running pid: " + std::string(entry->d_name);
+                std::cout << LIGHT_RED << ret << DEFAULT_COLOR << std::endl;
+                reporter.error(ret);
+                closedir(dir);
+                return (true);
+            }
+        }
+    }
+    closedir(dir);
+    return (false);
+}
+
+
+bool Application::CheckForLockFile() {
+   if (CheckForInstance()) return true;
     if (FILE *file = fopen(LOCKFILE, "r+")) {
         fclose(file);
-        std::string ret = "an instance of taskmaster is already running";
+        std::string ret = "taskmaster don't quit proprely, a lock file prevents starting: " + std::string(LOCKFILE) + " please remove it and try again";
         std::cout << LIGHT_RED << ret << DEFAULT_COLOR << std::endl;
         reporter.error(ret);
         return true;
@@ -42,7 +76,7 @@ void Application::start() {
     if (mode == NONE) {
         reporter.system("start (local)");
         command.enableBackgroundCommand = true;
-        if (CheckForInstance()) {
+        if (CheckForLockFile()) {
             reporter.system("stop");
             reporter.close();
             return ;
@@ -63,7 +97,7 @@ void Application::start() {
         reporter.system("start (server)");
         command.enableBackgroundCommand = false;
         if (!restart) {
-            if (CheckForInstance()) {
+            if (CheckForLockFile()) {
                 reporter.system("stop");
                 reporter.close();
                 return ;

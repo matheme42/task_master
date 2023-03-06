@@ -10,7 +10,10 @@
 
 #include <libgen.h>
 #include <sys/stat.h>
-
+#include <dirent.h>
+#include <fstream>
+#include <iostream>
+#include <string>
 
 class Application {
     enum Mode { SERVER, CLIENT, NONE};
@@ -34,6 +37,7 @@ class Application {
         void setCommandCallback();
         void setServerCallback();
         void configureLogger();
+        bool CheckForLockFile();
         bool CheckForInstance();
     public:
 
