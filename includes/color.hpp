@@ -14,5 +14,10 @@
 #define DEFAULT_COLOR "\033[0m"
 #define BROWN   "\033[0;38;5;130m"
 #define ORANGE   "\033[0;38;5;208m"
+#define DARK_ORANGE   "\033[0;38;5;172m"
+#define GREY   "\033[0;38;5;240m"
+#define LIGHT_GREY   "\033[0;38;5;250m"
+#define YELLOW   "\033[0;38;5;226m"
+#define DARK_YELLOW   "\033[0;38;5;184m"
 
 #endif

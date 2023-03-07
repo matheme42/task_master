@@ -71,20 +71,20 @@ int Option::checkWorkingArg(char *s) {
 
 
 void Option::usage() {
-    std::cout << "taskmaster:" << std::endl;
-    std::cout << "  in local:" << std::endl;
-    std::cout << "    ./taskmaster [-l log file path] -c config file" << std::endl;
-    std::cout << "  as server:" << std::endl;
-    std::cout << "    ./taskmaster [-l log file path] [-k cryptage key] [-P master password] -p port -c config file" << std::endl;
-    std::cout << "  as client:" << std::endl;
-    std::cout << "    ./taskmaster host -p port [-k decryptage key]" << std::endl;
+    std::cout << DARK_BLUE << "Usage:" << DEFAULT_COLOR << std::endl;
+    std::cout << WHITE_BOLD << "  in local:" << DEFAULT_COLOR << std::endl;
+    std::cout << GREY << "    ./taskmaster " << DARK_ORANGE << "[-l log file path] " << LIGHT_GREY << "-c config file" << std::endl;
+    std::cout << WHITE_BOLD << "  as server:" << DEFAULT_COLOR << std::endl;
+    std::cout << GREY << "    ./taskmaster " << DARK_ORANGE << "[-l log file path] [-k cryptage key] [-P master password] " << LIGHT_GREY << "-p port -c config file" << std::endl;
+    std::cout << WHITE_BOLD << "  as client:" << DEFAULT_COLOR << std::endl;
+    std::cout <<  GREY << "    ./taskmaster " << ORANGE << "[host]" << LIGHT_GREY << " -p port " << DARK_ORANGE << " [-k decryptage key]" << std::endl;
 
-    std::cout << "  options:" << std::endl;
-    std::cout << "    -p: port number between 0 and 65535" << std::endl;
-    std::cout << "    -c: path to a taskmaster config file" << std::endl;
-    std::cout << "    -l: path to log taskmaster commands" << std::endl;
-    std::cout << "    -P: set a master password to the server" << std::endl;
-    std::cout << "    -k: set a cryptage key use to encrypt the connection" << std::endl;
+    std::cout << WHITE_BOLD << "  options:" << DEFAULT_COLOR << std::endl;
+    std::cout << GREY << "    -p: " << LIGHT_GREY << "port number between 0 and 65535" << DEFAULT_COLOR << std::endl;
+    std::cout << GREY << "    -c: " << LIGHT_GREY << "path to a taskmaster config file" << DEFAULT_COLOR << std::endl;
+    std::cout << GREY << "    -l: " << LIGHT_GREY << "path to log taskmaster commands" << DEFAULT_COLOR << std::endl;
+    std::cout << GREY << "    -P: " << LIGHT_GREY << "set a master password to the server" << DEFAULT_COLOR << std::endl;
+    std::cout << GREY << "    -k: " << LIGHT_GREY << "set a cryptage key use to encrypt the connection" << DEFAULT_COLOR << std::endl;
 
     exit(0);
 }
