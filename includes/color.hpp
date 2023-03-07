@@ -13,5 +13,6 @@
 #define WHITE_BOLD   "\033[37m"
 #define DEFAULT_COLOR "\033[0m"
 #define BROWN   "\033[0;38;5;130m"
+#define ORANGE   "\033[0;38;5;208m"
 
 #endif

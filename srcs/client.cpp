@@ -294,6 +294,8 @@ void Client::start(std::string host, int port) {
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(port);
   
+    if (host.size() == 0) host = "127.0.0.1";
+
     // Convert IPv4 and IPv6 addresses from text to binary
     if (inet_pton(AF_INET, host.c_str(), &serv_addr.sin_addr) <= 0) {
         std::cout << LIGHT_RED << "Invalid address/ Address not supported\n" << DEFAULT_COLOR;

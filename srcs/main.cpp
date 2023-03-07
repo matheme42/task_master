@@ -28,7 +28,7 @@ void sig_handler(int signo)
 
 int main(int ac, char **av) {
     if (geteuid() != 0) {
-      fprintf(stderr, "App needs root\n");
+      fprintf(stderr, "%sNeed to be run as Root\n", LIGHT_RED);
       exit(1);
     }
     application.initWithArg(ac, av);

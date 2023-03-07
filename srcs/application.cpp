@@ -9,7 +9,7 @@ int  Application::create_directory_recursive(char *dir, mode_t mode)
     }
 
     if (strlen(dir) == 1 && dir[0] == '/') return 0;
-    create_directory_recursive(dirname(strdupa(dir)), mode);
+    create_directory_recursive(dirname(dir), mode);
     int ret = mkdir(dir, mode);
     if (errno == EEXIST) {
         return 0;
@@ -22,8 +22,8 @@ bool Application::CheckForInstance() {
 
     DIR* dir = opendir("/proc");
     if (dir == nullptr) {
-        std::cerr << "Failed to open /proc directory\n";
-        return 1;
+        std::cerr << LIGHT_RED << "Failed to open /proc directory\n" << DEFAULT_COLOR;
+        return (false);
     }
     pid_t pid = getpid();
 
