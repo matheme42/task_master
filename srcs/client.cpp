@@ -5,6 +5,7 @@ void Client::stop() {
 }
 
 void Client::clear() {
+    if (!listen) return ;
     std::cout << '\n';
     newPrompt();
     fflush(stdout);
@@ -253,6 +254,7 @@ void Client::start() {
     listen = true;
     waitingForRemote = false;
 
+
     if (client_fd == 0) {
         commandList.push_back("background");
         reporter.system("start listening in local");
@@ -278,7 +280,7 @@ void Client::start() {
     restoreKeyboard();
 }
 
-void Client::start(int port) {
+void Client::start(std::string host, int port) {
     bzero(buffer, sizeof(buffer));
 
     int status;
@@ -293,16 +295,35 @@ void Client::start(int port) {
     serv_addr.sin_port = htons(port);
   
     // Convert IPv4 and IPv6 addresses from text to binary
-    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+    if (inet_pton(AF_INET, host.c_str(), &serv_addr.sin_addr) <= 0) {
         std::cout << LIGHT_RED << "Invalid address/ Address not supported\n" << DEFAULT_COLOR;
         return ;
     }
+
+    struct timeval timeout;
+    timeout.tv_sec = 3;
+    timeout.tv_usec = 0;
+    if (setsockopt(client_fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0) {
+        std::cout << LIGHT_RED << "Failed to set SO_RCVTIMEO: " << strerror(errno) << DEFAULT_COLOR << std::endl;
+        return ;
+    }
+
+    if (setsockopt(client_fd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout, sizeof(timeout)) < 0) {
+        std::cout << LIGHT_RED << "Failed to set SO_SNDTIMEO: " << strerror(errno) << DEFAULT_COLOR << std::endl;
+        return ;
+    }
+
+    std::cout << LIGHT_GREEN << "Connected to " << host << ":" << port << DEFAULT_COLOR << std::endl;
+    fflush(stdout);
   
     if ((status = connect(client_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)))
         < 0) {
+
         std::cout << LIGHT_RED << "Connection Failed\n" << DEFAULT_COLOR;
         return ;
     }
+
+    // set socket to non blocking
     fcntl(client_fd, F_SETFL, O_NONBLOCK);
 
     // start listen stdin

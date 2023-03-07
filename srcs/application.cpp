@@ -117,7 +117,8 @@ void Application::start() {
         reporter.close();
         return ;
     }
-    client.start(preference.port);
+
+    client.start(preference.ip, preference.port);
 }
 
 void Application::configureLogger() {

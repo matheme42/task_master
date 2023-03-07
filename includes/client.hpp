@@ -64,7 +64,7 @@ class Client
         std::function<std::string(std::string)> decrypter;
 
 
-        void start(int port);
+        void start(std::string host, int port);
         void start();
         void stop();
         void clear();

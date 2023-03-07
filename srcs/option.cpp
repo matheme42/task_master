@@ -73,13 +73,11 @@ int Option::checkWorkingArg(char *s) {
 void Option::usage() {
     std::cout << "taskmaster:" << std::endl;
     std::cout << "  in local:" << std::endl;
-    std::cout << "    ./taskmaster [-l log file path] config file" << std::endl;
     std::cout << "    ./taskmaster [-l log file path] -c config file" << std::endl;
     std::cout << "  as server:" << std::endl;
-    std::cout << "    ./taskmaster [-l log file path] [-k cryptage key] [-P master password] -p port config file" << std::endl;
     std::cout << "    ./taskmaster [-l log file path] [-k cryptage key] [-P master password] -p port -c config file" << std::endl;
     std::cout << "  as client:" << std::endl;
-    std::cout << "    ./taskmaster [-k decryptage key] -p port" << std::endl;
+    std::cout << "    ./taskmaster host -p port [-k decryptage key]" << std::endl;
 
     std::cout << "  options:" << std::endl;
     std::cout << "    -p: port number between 0 and 65535" << std::endl;
@@ -89,6 +87,24 @@ void Option::usage() {
     std::cout << "    -k: set a cryptage key use to encrypt the connection" << std::endl;
 
     exit(0);
+}
+
+std::string Option::resolve_dns(const std::string& domain_name) {
+    addrinfo hints{};
+    hints.ai_family = AF_INET; // Recherche IPv4 uniquement
+    hints.ai_socktype = SOCK_STREAM; // Type de socket : TCP
+
+    addrinfo* result;
+    if (getaddrinfo(domain_name.c_str(), nullptr, &hints, &result) != 0) {
+        return "";
+    }
+
+    char ip_str[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &reinterpret_cast<sockaddr_in*>(result->ai_addr)->sin_addr, ip_str, INET_ADDRSTRLEN);
+
+    freeaddrinfo(result);
+
+    return ip_str;
 }
 
 int Option::fillOption(char *s) {
@@ -104,7 +120,16 @@ int Option::fillOption(char *s) {
             std::cout << "option -" << working_option << ": must between 0 and 65535" << std::endl;
             exit(EXIT_FAILURE); 
         }
-    } else if (working_option == 'P') master_password = s;
+    } else if (working_option == 'P') {
+        master_password = s;
+    } 
+    else if (working_option == '@') {
+        ip = resolve_dns(s);
+        if (ip == "") {
+            std::cout << "unable to resolve the IP for hostname: " << s << std::endl;
+            exit(EXIT_FAILURE); 
+        }
+    }
 
     return (i);
 }
@@ -119,7 +144,7 @@ void Option::parse(int ac, char **av)
 	int	i;
 
 	if (((*av)[0] != '-' || !(*av)[1]) && working_option == '\0') {
-		working_option = (char)'c';
+		working_option = (char)'@';
     }
     i = working_option == '\0' ? 1 : 0;
 	while ((*av)[i])
