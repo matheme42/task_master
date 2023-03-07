@@ -314,9 +314,6 @@ void Client::start(std::string host, int port) {
         std::cout << LIGHT_RED << "Failed to set SO_SNDTIMEO: " << strerror(errno) << DEFAULT_COLOR << std::endl;
         return ;
     }
-
-    std::cout << LIGHT_GREEN << "Connected to " << host << ":" << port << DEFAULT_COLOR << std::endl;
-    fflush(stdout);
   
     if ((status = connect(client_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)))
         < 0) {
@@ -324,6 +321,9 @@ void Client::start(std::string host, int port) {
         std::cout << LIGHT_RED << "Connection Failed\n" << DEFAULT_COLOR;
         return ;
     }
+
+    std::cout << LIGHT_GREEN << "Connected to " << host << ":" << port << DEFAULT_COLOR << std::endl;
+    fflush(stdout);
 
     // set socket to non blocking
     fcntl(client_fd, F_SETFL, O_NONBLOCK);
