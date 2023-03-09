@@ -134,13 +134,19 @@ void Server::start() {
         if (localNewSocket >= 0) {
             if (client_socket.size() == MAX_CLIENT) {
                 reporter.system("someone try to connect but server is full");
-                if (encrypter) send(localNewSocket, encrypter("server is full").c_str(), 15, 0);
+                if (encrypter) {
+                    std::string tmp = encrypter("server is full");
+                    send(localNewSocket, tmp.c_str(), tmp.size(), 0);
+                }
                 else send(localNewSocket, "server is full", 15, 0);
                 close(localNewSocket);
             } else {
                 reporter.system("someone connect to the server");      
                 if (master_password.size() != 0) {
-                    if (encrypter) send(localNewSocket, encrypter("password: ").c_str(), 10, 0);
+                    if (encrypter) {
+                        std::string tmp = encrypter("password: ");
+                        send(localNewSocket, tmp.c_str(), tmp.size(), 0);
+                    }
                     else send(localNewSocket, "password", 10, 0);
                 } else {
                     authenticate_client.push_back(localNewSocket);
@@ -169,11 +175,17 @@ void Server::start() {
                     if (decrypter) cmp = strcmp(decrypter(buffer).c_str(), master_password.c_str());
                     else cmp = strcmp(buffer, master_password.c_str());
                     if (cmp != 0) {
-                        if (encrypter) send(new_socket, encrypter("password: ").c_str(), 10, 0);
+                        if (encrypter) {
+                            std::string encrypted = encrypter("password: ");
+                            send(new_socket, encrypted.c_str(), encrypted.size(), 0);
+                        }
                         else send(new_socket, "password: ", 10, 0);
                     } else {
                         authenticate_client.push_back(new_socket);
-                        if (encrypter) send(new_socket, encrypter("authenticate").c_str(), 12, 0);
+                        if (encrypter) {
+                            std::string encrypted = encrypter("authenticate");
+                            send(new_socket, encrypted.c_str(), encrypted.size(), 0);
+                        }
                         else send(new_socket, "authenticate", 12, 0);
                     }
                     bzero(buffer, ret);
@@ -185,10 +197,16 @@ void Server::start() {
                     else command_ret = onMessageReceive(buffer);
                 }
                 if (command_ret[0] != '\0') {
-                    if (encrypter) send(new_socket, encrypter(command_ret).c_str(), command_ret.size(), 0);
+                    if (encrypter) {
+                        std::string encrypted = encrypter(command_ret);
+                        send(new_socket, encrypted.c_str(), encrypted.size(), 0);
+                    }
                     else send(new_socket, command_ret.c_str(), command_ret.size(), 0);
                 } else {
-                    if (encrypter) send(new_socket,  encrypter("").c_str(), 1, 0);
+                    if (encrypter) {
+                        std::string encrypted = encrypter("");
+                        send(new_socket, encrypted.c_str(), encrypted.size(), 0);
+                    }
                     else send(new_socket, "", 1, 0);
                 }
                 bzero(buffer, ret);

@@ -30,7 +30,7 @@ OBJ_NAME		= $(NAME_SRC:.cpp=.o)
 
 OBJS = $(addprefix $(OBJ_PATH)/,$(OBJ_NAME))
 
-DEBUG_FLAG = -Wall -Wextra -Werror -fsanitize=address
+DEBUG_FLAG = #-Wall -Wextra -Werror -fsanitize=address
 
 OPTIMISATION_FLAG = -ofast #-o3 #-ofast  pas d'interet pour l'instant
 
@@ -41,7 +41,7 @@ GPP			= g++ -std=c++11 $(OPTIMISATION_FLAG) $(DEBUG_FLAG)
 all: $(NAME)
 
 $(NAME) : $(OBJS)
-	@$(GPP) $^ -o $@ -lncurses
+	@$(GPP) $^ -o $@ -lncurses -lcrypto -lcryptopp
 	@echo "	\033[2K\r$(DARK_BLUE)$(NAME):\t\t$(GREEN)loaded\033[0m"
 
 $(OBJ_PATH)/%.o: $(SRC_PATH)/%.cpp $(INC) Makefile
