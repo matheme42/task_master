@@ -230,7 +230,7 @@ void Application::setCommandCallback() {
 
     command.onCommandBackground = ([&](int port){
         reporter.command("background port: " + std::to_string(port));
-        std::string ret = server.configure(port, "");
+        std::string ret = server.configure(port, preference.master_password);
         if (ret.size()) {
             ret = LIGHT_RED + ret + DEFAULT_COLOR;
             return ret;
