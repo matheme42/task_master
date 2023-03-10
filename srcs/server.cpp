@@ -141,14 +141,15 @@ void Server::start() {
                 else send(localNewSocket, "server is full", 15, 0);
                 close(localNewSocket);
             } else {
-                reporter.system("someone connect to the server");      
                 if (master_password.size() != 0) {
+                    reporter.system("someone try connect to the server");
                     if (encrypter) {
                         std::string tmp = encrypter("password: ");
                         send(localNewSocket, tmp.c_str(), tmp.size(), 0);
                     }
                     else send(localNewSocket, "password", 10, 0);
                 } else {
+                    reporter.system("someone connect to the server");
                     authenticate_client.push_back(localNewSocket);
                 }
                 fcntl(localNewSocket, F_SETFL, O_NONBLOCK);
@@ -181,6 +182,7 @@ void Server::start() {
                         }
                         else send(new_socket, "password: ", 10, 0);
                     } else {
+                        reporter.system("successfull connecting to the server");
                         authenticate_client.push_back(new_socket);
                         if (encrypter) {
                             std::string encrypted = encrypter("authenticate");

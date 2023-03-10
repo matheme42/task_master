@@ -143,6 +143,11 @@ void Option::parse(int ac, char **av)
 {
 	int	i;
 
+    if ((*av)[0] == '-' && (*av)[1] == '@'){
+        std::cout << DARK_BLUE "taskmaster: " << DEFAULT_COLOR << (*av)[1]  << ORANGE << " is not an option" << DEFAULT_COLOR << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
 	if (((*av)[0] != '-' || !(*av)[1]) && working_option == '\0') {
 		working_option = (char)'@';
     }
@@ -156,7 +161,7 @@ void Option::parse(int ac, char **av)
         }
         working_option = '\0';
         if (state.find((*av)[i]) == state.end()) {
-            std::cout << (*av)[i] << " is not an option" << std::endl;
+            std::cout  << DARK_BLUE << "taskmaster: " << DEFAULT_COLOR << (*av)[i] << ORANGE  << " is not an option" << DEFAULT_COLOR << std::endl;
             exit(EXIT_FAILURE);
         }
         working_option = (*av)[i];
@@ -199,6 +204,16 @@ char	**Option::configure(int ac, char **av)
         exit(0);
     }
 	parse(ac - 1, &(av[1]));
+
+    if (ip.size() != 0 && config_path.size() != 0) {
+        std::cout << DARK_BLUE << "taskmaster: " << ORANGE << "invalide configuration " << DEFAULT_COLOR << "(use option: -h)" << std::endl;
+        exit(0);
+    }
+
+    if (ip.size() != 0 && port == 0) {
+        std::cout << DARK_BLUE << "taskmaster: " << ORANGE << "a port must be reffered " << DEFAULT_COLOR << "(use option: -p)" << std::endl;
+        exit(0);
+    }
 
     if (config_path.size() == 0 && port == 0) {
         std::cout << DARK_BLUE << "taskmaster: " << ORANGE << "a config file must be reffered " << DEFAULT_COLOR << "(use option: -c)" << std::endl;

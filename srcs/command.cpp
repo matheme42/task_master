@@ -85,7 +85,7 @@ std::string Command::interpreteCommand(std::string s) {
         }
     } else if (v[0] == "start" || v[0] == "restart" || v[0] == "stop") {
         if (v.size() == 1) {
-            ret = ret + DARK_BLUE + "taskmaster: " + LIGHT_RED + "command error: " + WHITE_BOLD + v[0] + DEFAULT_COLOR + ": must be follow by at least one process name";
+            ret = ret + DARK_BLUE + "taskmaster: " + LIGHT_RED + "command error: " + WHITE_BOLD + v[0] + ": " + "must be follow by at least one process name" + DEFAULT_COLOR;
             return ret;
         } else {
             for (auto it = begin(v) + 1; it != end(v); it++) {
