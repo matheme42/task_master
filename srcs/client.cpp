@@ -168,11 +168,10 @@ void Client::addLineTohistory() {
 }
 
 void Client::newPrompt() {
-        line.clear();
-        cursor_position = 0;
-
-    if (!authenticated) {
-        termcaps.delLine();
+    line.clear();
+    cursor_position = 0;
+    termcaps.delLine();
+    if (!authenticated && master_password.size() == 0) {
         std::cout << DARK_BLUE << "requesting password: " << DEFAULT_COLOR;
         return ;
     }
@@ -215,6 +214,18 @@ void Client::sendCommandLineInRemote() {
     addLineTohistory();
 }
 
+void Client::tryAutoConnect() {
+    if (master_password.size() == 0) return ;
+    if (encrypter) {
+        std::string encrypted = encrypter(master_password);
+        send(client_fd, encrypted.c_str(), encrypted.size() + 1, 0);
+    } else {
+        send(client_fd, master_password.c_str(), master_password.size() + 1, 0);
+    }
+    waitingForRemote = true;
+    master_password.clear();
+}
+
 void Client::readCommandLineInRemote() {
     int valread = read(client_fd, buffer, 2048);
     if (valread <= 0) return ;
@@ -236,11 +247,13 @@ void Client::readCommandLineInRemote() {
         authenticated = false;
     } else if (!strcmp(buffer, "authenticate")) {
         authenticated = true;
+        termcaps.delLine();
     } else if (buffer[0] != '\0') std::cout << buffer << std::endl;
     waitingForRemote = false;
     bzero(buffer, valread);
 
     if (listen) newPrompt();
+    if (!authenticated && master_password.size() > 0) tryAutoConnect();
 }
 
 void Client::start() {
@@ -260,7 +273,7 @@ void Client::start() {
         reporter.system("start listening in local");
     }
 
-    std::cout << DEFAULT_PROMPT;
+    newPrompt();
     configureKeyboard();
     while (listen) {
         usleep(1000);
@@ -280,11 +293,12 @@ void Client::start() {
     restoreKeyboard();
 }
 
-void Client::start(std::string host, int port) {
+void Client::start(std::string host, int port, std::string master_password) {
     bzero(buffer, sizeof(buffer));
 
     int status;
     struct sockaddr_in serv_addr;
+    this->master_password = master_password;
     if ((client_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         printf("\n Socket creation error \n");
         std::cout << LIGHT_RED << "Socket creation error\n" << DEFAULT_COLOR;

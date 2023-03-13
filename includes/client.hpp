@@ -42,6 +42,7 @@ class Client
         int history_index;
         bool waitingForRemote;
         bool authenticated;
+        std::string master_password;
 
         int client_fd = 0;
         char buffer[2048] = { 0 };
@@ -54,9 +55,12 @@ class Client
         void newPrompt();
         void restoreKeyboard();
         void configureKeyboard();
+
         void sendCommandLineInLocal();
         void sendCommandLineInRemote();
         void readCommandLineInRemote();
+        
+        void tryAutoConnect();
         bool listen;
     public:
         std::function<std::string(const char *)> onMessageReceive;
@@ -64,7 +68,7 @@ class Client
         std::function<std::string(std::string)> decrypter;
 
 
-        void start(std::string host, int port);
+        void start(std::string host, int port, std::string master_password);
         void start();
         void stop();
         void clear();

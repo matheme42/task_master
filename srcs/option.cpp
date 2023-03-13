@@ -220,5 +220,24 @@ char	**Option::configure(int ac, char **av)
         exit(0);
     }
 
+    if (config_path.size() != 0 && port == 0) {
+        if (master_password.size() != 0) {
+            master_password = "";
+            std::cout << DARK_BLUE << "taskmaster: " << DEFAULT_COLOR << "option -P ignored" << std::endl;
+        }
+        if (crytage_key.size() != 0) {
+            crytage_key = "";
+            std::cout << DARK_BLUE << "taskmaster: " << DEFAULT_COLOR << "option -k ignored" << std::endl;
+        }
+    }
+
+    if (config_path.size() == 0 && port != 0) {
+        if (log_path.size() != 0) {
+            log_path = "";
+            std::cout << DARK_BLUE << "taskmaster: " << DEFAULT_COLOR << "option -l ignored" << std::endl;
+        }
+
+    }
+
 	return (ft_go_after_option(&(av[1])));
 }

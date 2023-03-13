@@ -118,7 +118,7 @@ void Application::start() {
         return ;
     }
 
-    client.start(preference.ip, preference.port);
+    client.start(preference.ip, preference.port, preference.master_password);
 }
 
 void Application::configureLogger() {
