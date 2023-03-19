@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <functional>
 #include <color.hpp>
+#
 
 class Command {
     #define WHITESPACE " \n\r\t\f\v"
@@ -25,6 +26,7 @@ class Command {
 
         std::string                 interpreteCommand(std::string s);
         std::string                 buildHelpString();
+        std::string                 background(std::vector<std::string> v);
     public:
         bool enableBackgroundCommand = false;
 
@@ -36,7 +38,7 @@ class Command {
         std::function<void()>        onCommandExit;
         std::function<void()>        onCommandHelp;
         std::function<std::string()> onCommandReload;
-        std::function<std::string(int port)> onCommandBackground;
+        std::function<std::string(int port, std::string masterPass, std::string encryptKey)> onCommandBackground;
 
 
         std::function<std::string(std::string)> onCommandStart;

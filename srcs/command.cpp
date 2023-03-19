@@ -51,6 +51,67 @@ std::string Command::buildHelpString() {
     return help;
 }
 
+
+std::string Command::background(std::vector<std::string> v) {
+    std::string command;
+    std::string ret;
+    std::string master_pass;
+    std::string encrypt_key;
+    int         port;
+
+
+    command = v[0];
+    char current_working_option = 0;
+    encrypt_key = "";
+    master_pass = "";
+    port = 0;
+    if (v.size() == 1) {
+        ret = ret + DARK_BLUE + "taskmaster: " + LIGHT_RED + "command error: " + WHITE_BOLD + command + DEFAULT_COLOR + ": must be follow by a port number";
+        return ret;
+    }
+    v.erase(v.begin());
+
+    for (auto i : v) {
+        if (current_working_option != 0) {
+            if (current_working_option == 'k') encrypt_key = i;
+            else if (current_working_option == 'P') master_pass = i;
+            current_working_option = 0;
+            continue;
+        }
+        if (i[0] == '-') {
+            if (i.size() != 2 || (i[1] != 'k' && i[1] != 'P')) {
+                ret = ret + + DARK_BLUE + "taskmaster: " + LIGHT_RED + "command error: " + WHITE_BOLD + command + DEFAULT_COLOR + ": invalide option: " + i[1];
+                return ret;
+            }
+            current_working_option = i[1];
+            continue;
+        }
+
+        int idx = 0;
+        while (i[idx] && isdigit(i[idx++])) ;
+        if (i[idx]) {
+            ret = ret + DARK_BLUE + "taskmaster: " + LIGHT_RED + "command error: " + WHITE_BOLD + command + DEFAULT_COLOR + ": port must be an int";
+            return ret;
+        }
+        port = atoi(i.c_str());
+        if (port <= 0 || port > 65535) {
+            ret = ret + DARK_BLUE + "taskmaster: " + LIGHT_RED + "command error: " + WHITE_BOLD + command + DEFAULT_COLOR + ": port must between 1 and 65535";
+            return ret;
+        }
+    }
+
+    if (port == 0) {
+        ret = ret + DARK_BLUE + "taskmaster: " + LIGHT_RED + "command error: " + WHITE_BOLD + command + DEFAULT_COLOR + ": a port must be reffered";
+        return ret;
+    }
+
+    if (onCommandBackground) {
+        ret = ret + onCommandBackground(port, master_pass, encrypt_key);
+        return ret;
+    }
+    return "\n";
+}
+
 std::string Command::interpreteCommand(std::string s) {
     std::string ret;
 
@@ -97,28 +158,7 @@ std::string Command::interpreteCommand(std::string s) {
             return ret;
         }
     } else if (enableBackgroundCommand && v[0] == "background") {
-        if (v.size() == 1) {
-            ret = ret + DARK_BLUE + "taskmaster: " + LIGHT_RED + "command error: " + WHITE_BOLD + v[0] + DEFAULT_COLOR + ": must be follow by port number";
-            return ret;
-        }
-        if (v.size() > 2) {
-            ret = ret + DARK_BLUE + "taskmaster: " + LIGHT_RED + "command error: " + WHITE_BOLD + v[0] + DEFAULT_COLOR + ": must be follow by only 1 parameter";
-            return ret;
-        }
-        int i = 0;
-        while (v[1][i] && isdigit(v[1][i++])) ;
-        if (v[1][i]) {
-            ret = ret + DARK_BLUE + "taskmaster: " + LIGHT_RED + "command error: " + WHITE_BOLD + v[0] + DEFAULT_COLOR + ": must be an int";
-            return ret;
-        }
-        int port = atoi(v[1].c_str());
-        if (port <= 0 || port > 65535) {
-            ret = ret + DARK_BLUE + "taskmaster: " + LIGHT_RED + "command error: " + WHITE_BOLD + v[0] + DEFAULT_COLOR + ": must between 0 and 65535";
-            return ret;
-        }
-
-        if (onCommandBackground) ret = ret + onCommandBackground(port);
-        return ret;
+        return background(v);
     }
 
     return "\n";

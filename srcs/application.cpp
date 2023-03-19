@@ -228,8 +228,12 @@ void Application::setCommandCallback() {
         return ret;
     });
 
-    command.onCommandBackground = ([&](int port){
+    command.onCommandBackground = ([&](int port, std::string master_pass, std::string encrypt_key){
         reporter.command("background port: " + std::to_string(port));
+
+        if (master_pass.size() != 0) preference.master_password = master_pass;
+        if (encrypt_key.size() != 0) preference.crytage_key = encrypt_key;
+
         std::string ret = server.configure(port, preference.master_password);
         if (ret.size()) {
             ret = LIGHT_RED + ret + DEFAULT_COLOR;
